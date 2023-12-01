@@ -1,23 +1,14 @@
-import os
-import random
-import matplotlib.pyplot as plt
 import numpy as np
-import plotly.express as px
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import pandas as pd
 from tqdm import tqdm
-import torch.optim as optim
-import yaml
-import pickle
-from torch.utils.data import Dataset, DataLoader
-from sklearn.preprocessing import MinMaxScaler
+from torch.utils.data import Dataset
 
 class covid_dataset(Dataset):
     
     def __init__(self, 
                  df:pd,
+                 y:pd,
+                 adj: np.array,
                  past_step:int, 
                  future_step:int):
         """
@@ -28,7 +19,7 @@ class covid_dataset(Dataset):
         """
         self.x = []
         self.y = []
-
+        self.adj = []
         n = len(df.codice_regione.unique())
         date = df.data.unique()
         date.sort()
@@ -42,15 +33,11 @@ class covid_dataset(Dataset):
         for i in tqdm(range(start, len(date)-future_step-past_step-1)):
             if date[i+past_step+future_step]-date[i+past_step+future_step-1] == np.timedelta64(1, 'D'): 
                 tmp_x = df[df.data.isin(date[i:i+past_step])].drop(columns = "data").values
-                tmp_y = df[df.data.isin(date[i+past_step:i+past_step+future_step])].nuovi_casi.values
-                
-                #print(tmp_x.shape)
-                if (len(tmp_x) == n_provincie*past_step) & ((len(tmp_y) == n_provincie*future_step)):
-                    tmp_y = tmp_y.reshape(future_step, -1)
-                    self.x.append(tmp_x)
-                    self.y.append(tmp_y)
-                else:
-                    print(len(tmp_x))
+                tmp_y = y[df.data.isin(date[i+past_step:i+past_step+future_step])].nuovi_casi.values
+
+                self.x.append(tmp_x.reshape(past_step, n_provincie, -1))
+                self.y.append(tmp_y.reshape(future_step, -1))
+                self.adj.append(np.tile(adj,(past_step,1,1)))
             else:
                 i += past_step+future_step
         
@@ -58,4 +45,4 @@ class covid_dataset(Dataset):
         return len(self.x)
     
     def __getitem__(self, idx):
-        return self.x[idx], self.y[idx]
+        return self.x[idx], self.y[idx], self.adj[idx]

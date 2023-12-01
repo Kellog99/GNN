@@ -8,7 +8,7 @@ dataset:
     numerical: ['ricoverati_con_sintomi', 'terapia_intensiva', 'totale_ospedalizzati', 'dimessi_guariti', 'deceduti', 'tamponi', 'popolazione', 'nuovi_casi']
     merge: ['data', 'codice_regione', 'denominazione_regione']
     target: ['nuovi_casi']
-    aggregate: False
+    aggregate: True
 
 setting:
     batch_size: 128
