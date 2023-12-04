@@ -1,4 +1,5 @@
 # Cartelle da ignorare
 /data/
+/model/
 /figures/
 /.ipynb_checkpoints/
