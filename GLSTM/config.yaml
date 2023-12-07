@@ -11,7 +11,8 @@ dataset:
     aggregate: True
 
 setting:
-    batch_size: 128
+    epochs: 300
+    batch_size: 36
     past_step: 20
     future_step: 10
 
