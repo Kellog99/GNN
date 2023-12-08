@@ -25,6 +25,7 @@ model:
     concat : True
     embedding : True
     dim_categorical : 128
+    in_feat : 12
     
 grid_search:
     num_layer_gnn : [1,2,4,8]
