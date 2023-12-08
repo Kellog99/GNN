@@ -12,8 +12,8 @@ dataset:
 
 setting:
     batch_size: 128
-    past_step: 20
-    future_step: 10
+    past_step: 40
+    future_step: 30
 
 model:
     categorical: [21, 112]
