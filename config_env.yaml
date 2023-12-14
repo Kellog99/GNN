@@ -1,0 +1,16 @@
+setting:
+    past_step : 20
+    future_step : 10
+    lr : 1e-4
+    weight_decay : 3e-4
+    alpha : 7e-5
+    epochs : 1
+
+paths:
+    popolazione: '/home/andrea/Scrivania/Tesi/leonardo/data/popolazione.csv'
+    data: '/home/andrea/Scrivania/Tesi/leonardo/data'
+    adj: '/home/andrea/Scrivania/Tesi/leonardo/data/adj'
+    dati-province: '/home/andrea/Scrivania/Tesi/leonardo/data/dati-province'
+    dati-regioni: '/home/andrea/Scrivania/Tesi/leonardo/data/dati-regioni'
+    models: '/home/andrea/Scrivania/Tesi/leonardo/best_models'
+    fig: '/home/andrea/Scrivania/Tesi/leonardo/figures'

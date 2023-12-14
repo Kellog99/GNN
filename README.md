@@ -1,6 +1,15 @@
 # Graph Neural Networks (GNNs) and Diffusion Models Introduction
 
-Welcome to the repository! In this project, we explore the significance of Graph Neural Networks (GNNs) and their connection with diffusion models on graphs. Understanding and leveraging the power of GNNs is crucial in various domains, ranging from social network analysis to recommendation systems, biology, and beyond. This README aims to provide a brief overview of why GNNs are important and how they are connected to diffusion models on graphs.
+Welcome to the repository! This project of mine is centered on exploring the expressivity Graph Neural Networks (GNNs) and their connection with diffusion models on graphs. 
+The idea of this repo is to have a unique library for multi multi-dimensional (or even unidimensional, i.e. autoregressive) timeseries regression. Up to now the model that have been implemented are 
+* GLSTM one shot prediction
+* GLSTM seq2seq prediction
+
+Future release will have
+* GCLSTM one shot prediction
+* GCLSTM seq2seq prediction
+* ARIMA
+* ARMA
 
 ## Why GNNs?
 ### 1. Graph Representation

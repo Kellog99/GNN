@@ -1,0 +1,2 @@
+,date,model,seq2seq,past_step,future_step,score
+0,2023-12-11,GLSTM,True,20,10,203.13651962280272
