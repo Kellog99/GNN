@@ -11,6 +11,9 @@ Future release will have
 * ARIMA
 * ARMA
 
+After that all the models have been executed, it is printed the results of the training showing the ranking list of the models.
+The position is given by the loss function given in the begining to the model since is the one that is shared among all the models. This is important to say because there can be models that require additional terms to the loss in order to work, like the VAE use the KL divergence.
+
 ## Why GNNs?
 ### 1. Graph Representation
 

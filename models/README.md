@@ -1,5 +1,6 @@
 # Struttura
 Every type of model is characterised by:
+
 * Name model
   * `config.yaml` is the local configuration file which is the one associated with the elements of the model itself
   * `main.py` is the main for each model. It initialize the model and it trains it.

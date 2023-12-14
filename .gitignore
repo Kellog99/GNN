@@ -4,3 +4,6 @@
 /figures/
 /.ipynb_checkpoints/
 /testing/
+/__pycache__/
+/notebook/__pycache__/
+/best_models/
