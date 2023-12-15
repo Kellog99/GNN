@@ -51,14 +51,14 @@ class pre_processing(torch.nn.Module):
 
     
 
-class my_gat(torch.nn.Module):
+class my_gcnn(torch.nn.Module):
 
     def __init__(self, 
                  in_channels: int, 
                  out_channels: int,
                  past:int, 
                  dim_hidden_emb:int = 128):
-        super(my_gat, self).__init__()
+        super(my_gcnn, self).__init__()
 
         self.in_channels = in_channels
         self.out_channels = out_channels

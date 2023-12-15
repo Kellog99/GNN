@@ -10,11 +10,6 @@ dataset:
     target: ['nuovi_casi']
     aggregate: True
 
-setting:
-    batch_size: 128
-    past_step: 20
-    future_step: 10
-
 model:
     categorical: [21, 112]
     num_layer_gnn : 2
@@ -25,20 +20,6 @@ model:
     embedding : True
     dim_categorical : 128
     
-grid_search:
-    num_layer_gnn : [1,2,4,8]
-    out_preprocess : [64, 128, 256]
-    dropout : [0.05,0.1,0.15]
-    hidden_propagation : [64, 128, 256]
-    embedding : [True, False]
-    concat : [True, False]
-    dim_categorical : [64, 128, 256]
-    
-paths:
-    popolazione: '/home/andrea/Scrivania/Tesi/leonardo/data/popolazione.csv'
-    data: '/home/andrea/Scrivania/Tesi/leonardo/data'
-    adj: '/home/andrea/Scrivania/Tesi/leonardo/data/adj'
-    dati-province: '/home/andrea/Scrivania/Tesi/leonardo/data/dati-province'
-    dati-regioni: '/home/andrea/Scrivania/Tesi/leonardo/data/dati-regioni'
-    models: '/home/andrea/Scrivania/Tesi/leonardo/models'
-    fig: '/home/andrea/Scrivania/Tesi/leonardo/figures'
+training:
+    epochs: 300
+    batch_size: 50

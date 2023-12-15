@@ -4,9 +4,11 @@ Welcome to the repository! This project of mine is centered on exploring the exp
 The idea of this repo is to have a unique library for multi multi-dimensional (or even unidimensional, i.e. autoregressive) timeseries regression. Up to now the model that have been implemented are 
 * GLSTM one shot prediction
 * GLSTM seq2seq prediction
+* GAT-LSTM one shot prediction
+* GAT-LSTM seq2seq (it is too much expensive)
 
 Future release will have
-* GCLSTM one shot prediction
+* GCLSTM one shot prediction with Graph Convolutional network
 * GCLSTM seq2seq prediction
 * ARIMA
 * ARMA
