@@ -139,7 +139,7 @@ class GAT_LSTM(torch.nn.Module):
                  hidden_propagation:int = 128):
         
         super(GAT_LSTM, self).__init__()
-        
+        print("GAT_LSTM")
         self.in_feat = in_feat         # numero di features di ogni nodo prima del primo GAT        
         self.past = past 
         self.future = future

@@ -2,6 +2,7 @@ import yaml
 import pickle
 import os
 from data import covid_dataset
+import pandas as pd
 import torch
 import torch.nn.functional as F
 from models.GLSTMseq2seq.main import model_GLSTMseq2seq
@@ -35,13 +36,16 @@ if __name__ == "__main__":
     
     df_train, df_val = get_dataloader(config = config)
     scores = {}
-
+    
     be = model_GAT_LSTM(df_train = df_train, 
                             df_val = df_val, 
                             config_env = config,
                             loss_function = loss_function)
-    scores['GLSTMseq2seq'] = be
+    scores['GAT_LSTM'] = be
 
+    torch.cuda.empty_cache()                
+
+    config['setting']['epochs'] = 1000
     be = model_GLSTMseq2seq(df_train = df_train, 
                             df_val = df_val, 
                             config_env = config,
@@ -58,4 +62,7 @@ if __name__ == "__main__":
                     loss_function = loss_function)
     scores['GLSTM'] = be
     print("Finish")
+
+    scores = pd.DataFrame(scores.items(), columns = ['model', 'score'])
+    scores.to_csv("./scores.csv")
     print(scores)
