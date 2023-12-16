@@ -20,16 +20,17 @@ The position is given by the loss function given in the begining to the model si
 The main point of the GAT's architecture is 
 ```math
 \alpha_{i,j}=\left\{\begin{aligned}
-&\frac{\exp(\langle a, W h_i||W h_j\rangle)}{\sum_{j\in N(i)}\exp(\langle a, W h_i||W h_j\rangle)}&& j\in N(i)
+&\frac{\exp(\langle a, W h_i||W h_j\rangle)}{\sum_{j\in N(i)}\exp(\langle a, W h_i||W h_j\rangle)}&& j\in N(i)\\
+&\alpha_{i,j}=0 && j\notin N(i)
 \end{aligned}\right.
 ```
-while $\alpha_{i,j}=0$ if $j\notin N(i)$. Since it is very expensive to concatenate two vectors. Thus let $a=(a_1||a_2)$ then
+Since it is very expensive to concatenate two vectors. Thus let $a=(a_1||a_2)$ then
 ```math
 z_{i,j}:=\langle a, v_i||v_j\rangle = \langle a_1, v_i\rangle  +\langle a_2, v_j\rangle  
 ```
 so let $n=|V|$ then
 ```math
-z_i=\langle v, a_1\rangle \in \R^{n,1} \qquad z_j =\langle v, a_2\rangle\in\R^{n,1}
+z_i=\langle v, a_1\rangle \in \mathbb{R}^{n,1} \qquad z_j =\langle v, a_2\rangle\in\mathbb{R}^{n,1}
 ```
 thus
 ```math
