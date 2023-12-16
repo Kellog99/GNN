@@ -3,17 +3,17 @@ import torch
 import torch.optim as optim
 import yaml
 from torch.utils.data import DataLoader
-from models.GLSTM.model import GLSTM
-from models.GLSTM.training import training
+from models.GAT_LSTMseq2seq.model import GAT_LSTMseq2seq
+from models.GAT_LSTMseq2seq.training import training
 from plot import plot
 from data import covid_dataset
 
-def model_GLSTM(df_train : covid_dataset, 
+def model_GAT_LSTMseq2seq(df_train : covid_dataset, 
                 df_val : covid_dataset, 
                 config_env: yaml, 
                 loss_function):
 
-    with open("/home/andrea/Scrivania/Tesi/leonardo/models/GLSTM/config.yaml", 'r') as f:
+    with open("/home/andrea/Scrivania/Tesi/leonardo/models/GAT_LSTMseq2seq/config.yaml", 'r') as f:
         config = yaml.safe_load(f)
         
     config.update(config_env)
@@ -25,7 +25,7 @@ def model_GLSTM(df_train : covid_dataset,
     batch_size= config['training']['batch_size']
     past_step = config['setting']['past_step']
     future_step = config['setting']['future_step']
-    id_model = f"GLSTM_{past_step}_{future_step}"
+    id_model = f"GAT_LSTMseq2seq_{past_step}_{future_step}"
     ################################################
 
     ############### Dataloader #####################
@@ -38,12 +38,11 @@ def model_GLSTM(df_train : covid_dataset,
 
     ################ Model #########################
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = GLSTM(in_feat = in_feat, 
-                past = past_step,
-                future = future_step,
-                categorical = config['model']['categorical'],
-                embedding = config['model']['embedding'],
-                device = device).to(device)
+    model = GAT_LSTMseq2seq(in_feat = in_feat, 
+                            past = past_step,
+                            future = future_step,
+                            categorical = config['model']['categorical'],
+                            device = device).to(device)
         
     optimizer = optim.Adam(model.parameters(), 
                            lr = float(config['setting']['lr']), 

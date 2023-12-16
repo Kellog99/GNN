@@ -12,7 +12,6 @@ class embedding_layer(torch.nn.Module):
         self.concat = concat
         self.embedding = nn.ModuleList([nn.Embedding(categorical[i], dim_categorical) for i in range(len(categorical))])
 
-        
     def forward(self, x):
     
         out = []
@@ -198,7 +197,7 @@ class GLSTMseq2seq(torch.nn.Module):
         ########## GNN processing ######################
         x, _ = self.gnn((x, adj))
         
-        batch_size, seq_len, nodes, features = x.size()
+        batch_size, seq_len, nodes, _ = x.size()
 
         # Initialize hidden and cell states
         

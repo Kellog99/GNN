@@ -17,6 +17,10 @@ After that all the models have been executed, it is printed the results of the t
 The position is given by the loss function given in the begining to the model since is the one that is shared among all the models. This is important to say because there can be models that require additional terms to the loss in order to work, like the VAE use the KL divergence.
 
 ### GAT-LSTM
+This architecture is based on the concept of GAT (Graph attention network) for embedding the features of the nodes and then using an LSTM for generating the stream of data.
+
+The concept of GAT architecture is taken from this [paper](https://arxiv.org/abs/1710.10903).
+
 Let $G=(V,E)$ be a graph and $i\in V$. The set of neighbour of $i$ is defined by $N(i)$.  This is important since the main point of the GAT's architecture is 
 ```math
 \alpha_{i,j}=\left\{\begin{aligned}
@@ -37,3 +41,9 @@ thus
 z = z_1.repeat(1,n)+(z_2.repeat(1,n))^T
 ```
 This produce the same exponent of the GAT's attention mechanism which is then normalized with a `softmax` operation.
+
+# TO-DO
+1. The global configuration file should contains all the paths to the local configuration file 
+   1. Should it be a whole folder by itself that contains all the files ore one in each directory?
+2. `PytorchLightning`
+3. Create one whole global training procedure 

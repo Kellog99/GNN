@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from models.GLSTMseq2seq.main import model_GLSTMseq2seq
 from models.GLSTM.main import model_GLSTM
 from models.GAT_LSTM.main import model_GAT_LSTM
+from models.GAT_LSTMseq2seq.main import model_GAT_LSTMseq2seq
 
 
 def get_dataloader(config:yaml)-> (covid_dataset, covid_dataset):
@@ -36,6 +37,11 @@ if __name__ == "__main__":
     
     df_train, df_val = get_dataloader(config = config)
     scores = {}
+    
+    be = model_GAT_LSTMseq2seq(df_train = df_train, 
+                            df_val = df_val, 
+                            config_env = config,
+                            loss_function = loss_function)
     
     be = model_GAT_LSTM(df_train = df_train, 
                             df_val = df_val, 
