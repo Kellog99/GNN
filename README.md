@@ -18,10 +18,10 @@ The position is given by the loss function given in the begining to the model si
 
 ### GAT-LSTM
 The main point of the GAT's architecture is 
-$$
+```math
 \alpha_{i,j}=
 \frac{\exp(\langle a, W h_i||W h_j\rangle)}{\sum_{j\in N(i)}\exp(\langle a, W h_i||W h_j\rangle)} \qquad j\in N(i)
-$$
+```
 while $\alpha_{i,j}=0$ if $j\notin N(i)$. Since it is very expensive to concatenate two vectors. Thus let $a=(a_1||a_2)$ then
 $$
 z_{i,j}:=\langle a, v_i||v_j\rangle = \langle a_1, v_i\rangle  +\langle a_2, v_j\rangle  
