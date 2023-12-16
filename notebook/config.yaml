@@ -40,5 +40,5 @@ paths:
     adj: '/home/andrea/Scrivania/Tesi/leonardo/data/adj'
     dati-province: '/home/andrea/Scrivania/Tesi/leonardo/data/dati-province'
     dati-regioni: '/home/andrea/Scrivania/Tesi/leonardo/data/dati-regioni'
-    models: '/home/andrea/Scrivania/Tesi/leonardo/models'
+    models: '/home/andrea/Scrivania/Tesi/leonardo/best_models'
     fig: '/home/andrea/Scrivania/Tesi/leonardo/figures'

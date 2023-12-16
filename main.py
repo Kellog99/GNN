@@ -42,20 +42,17 @@ if __name__ == "__main__":
                             config_env = config,
                             loss_function = loss_function)
     scores['GAT_LSTM'] = be
-
+    
+    # it allows to delete all the objects that were stored into the GPU
+    # in this way the memory of the GPU is cleared
     torch.cuda.empty_cache()                
-
-    config['setting']['epochs'] = 1000
     be = model_GLSTMseq2seq(df_train = df_train, 
                             df_val = df_val, 
                             config_env = config,
                             loss_function = loss_function)
     scores['GLSTMseq2seq'] = be
     
-    # it allows to delete all the objects that were stored into the GPU
-    # in this way the memory of the GPU is cleared
     torch.cuda.empty_cache()                
-
     be = model_GLSTM(df_train = df_train, 
                     df_val = df_val, 
                     config_env = config,

@@ -65,7 +65,8 @@ class my_gat(torch.nn.Module):
         self.lin = nn.Linear(in_channels, 
                              out_channels, 
                              bias = False)
-        self.a = nn.Parameter(torch.randn(in_channels*2))
+        self.a1 = nn.Parameter(torch.randn(in_channels))
+        self.a2 = nn.Parameter(torch.randn(in_channels))
         self.emb = nn.Linear(in_features = in_channels, 
                              out_features = dim_hidden_emb, 
                              bias = False)
@@ -76,11 +77,11 @@ class my_gat(torch.nn.Module):
         
         x, A = x0   
         x_emb = self.emb(x)
-        B, S, N, _ = x.shape
-        ## (h_i||h_j)
-        z = torch.stack([torch.concat((x_emb[:, :,i],x_emb[:,:, j]), -1) for j in range(N) for i in range(N)], -2)
-        z = F.leaky_relu(torch.matmul(z, self.a).view(B,S, N, N)) # B, S, N**2
-        #pi = torch.einsum('bdjk,bdik->bdij', x_emb, x_emb)
+        _, _, N, _ = x_emb.shape
+        ## <a,(h_i||h_j)>
+        a1 = torch.matmul(x_emb, self.a1).unsqueeze(-1).repeat(1,1,1,N)
+        a2 = torch.matmul(x_emb, self.a2).unsqueeze(-1).transpose(-2,-1).repeat(1,1,N, 1)
+        z = F.leaky_relu(a1+a2)
 
         # Apply the mask to fill values in the input tensor
         # sigmoid(Pi*X*W)
@@ -190,13 +191,14 @@ class GAT_LSTM(torch.nn.Module):
         x = input 
         emb = self.embedding(x)
         x = self.pre_processing(emb)
-        nodes = x.shape[-2]
-        ########## GNN processing ######################
+
+        ########## GAT processing ######################
         x, _ = self.gnn((x, adj))
         
-        batch_size, seq_len, nodes, features = x.size()
+        batch_size, seq_len, nodes, _ = x.size()
 
         # Initialize hidden and cell states
+        
         h, c = [torch.zeros(batch_size, nodes, self.hidden_lstm).to(x.device)] * 2
         for t in range(seq_len):
             h, c = self.lstm(x[:, t], (h, c))  
