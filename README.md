@@ -17,7 +17,7 @@ After that all the models have been executed, it is printed the results of the t
 The position is given by the loss function given in the begining to the model since is the one that is shared among all the models. This is important to say because there can be models that require additional terms to the loss in order to work, like the VAE use the KL divergence.
 
 ### GAT-LSTM
-The main point of the GAT's architecture is 
+Let $G=(V,E)$ be a graph and $i\in V$. The set of neighbour of $i$ is defined by $N(i)$.  This is important since the main point of the GAT's architecture is 
 ```math
 \alpha_{i,j}=\left\{\begin{aligned}
 &\frac{\exp(\langle a, W h_i||W h_j\rangle)}{\sum_{j\in N(i)}\exp(\langle a, W h_i||W h_j\rangle)}&& j\in N(i)\\
@@ -28,7 +28,7 @@ Since it is very expensive to concatenate two vectors. Thus let $a=(a_1||a_2)$ t
 ```math
 z_{i,j}:=\langle a, v_i||v_j\rangle = \langle a_1, v_i\rangle  +\langle a_2, v_j\rangle  
 ```
-so let $n=|V|$ then
+so if $n=|V|$ then
 ```math
 z_i=\langle v, a_1\rangle \in \mathbb{R}^{n,1} \qquad z_j =\langle v, a_2\rangle\in\mathbb{R}^{n,1}
 ```
@@ -36,4 +36,4 @@ thus
 ```math
 z = z_1.repeat(1,n)+(z_2.repeat(1,n))^T
 ```
-This produce the same exponent of the GAT's attention mechanism
+This produce the same exponent of the GAT's attention mechanism which is then normalized with a `softmax` operation.
