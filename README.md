@@ -47,3 +47,8 @@ This produce the same exponent of the GAT's attention mechanism which is then no
    1. Should it be a whole folder by itself that contains all the files ore one in each directory?
 2. `PytorchLightning`
 3. Create one whole global training procedure 
+   1. How to inser the scheduler into the training procedure.
+4. `DataManipulation.py` : it contains the class for organizing the dataset:
+    * The input should be the dataset, `past_step`, `future_step`.
+    * The last columns are for categorical variables
+    * The input of the dataset for the categorical variables is a list that contain the corresponding range of the variables in the dataset.
