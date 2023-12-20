@@ -20,7 +20,9 @@ def get_dataloader(config:yaml)-> (covid_dataset, covid_dataset):
     df_train, df_val = torch.utils.data.random_split(dataset=dataset, lengths = [len_train, len_val])
     return df_train, df_val
 
-def linfty(y, yh, alpha):
+def linfty(y:float, 
+           yh:float, 
+           alpha:float):
         out = F.l1_loss(y,yh, reduction = "mean")
         out += alpha*torch.max(torch.abs(y-yh))
         return out

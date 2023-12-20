@@ -16,6 +16,15 @@ Future release will have
 After that all the models have been executed, it is printed the results of the training showing the ranking list of the models.
 The position is given by the loss function given in the begining to the model since is the one that is shared among all the models. This is important to say because there can be models that require additional terms to the loss in order to work, like the VAE use the KL divergence.
 
+
+### GCN
+The Graph Convolutional neural network use the augmented laplacian in order to do the convolution 
+```math
+Let $G=(V, E)$ be a graph and denote $D, A$ respectively the degree and the adjacency matrix of $G$. Then the augmented Laplacian matrix is 
+    \[
+    \Tilde{L}=\Tilde{D}^{-\frac{1}{2}}L\Tilde{D}^{-\frac{1}{2}}= I-\Tilde{D}^{-\frac{1}{2}}\Tilde{A}\Tilde{D}^{-\frac{1}{2}}
+    \]
+```
 ### GAT-LSTM
 This architecture is based on the concept of GAT (Graph attention network) for embedding the features of the nodes and then using an LSTM for generating the stream of data.
 

@@ -2,25 +2,43 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+class embedding_layer(torch.nn.Module):
+    def __init__(self,
+                 categorical:list,
+                 dim_categorical:int, 
+                 concat:bool):
+        
+        super(embedding_layer, self).__init__()
+        self.concat = concat
+        self.embedding = nn.ModuleList([nn.Embedding(categorical[i], dim_categorical) for i in range(len(categorical))])
 
+        
+    def forward(self, x):
+    
+        out = []
+        # Con l'unsqueeze creo una nuova dimensione ed è come se mi salvassi per ogni features di ogni nodo di ogni batch tutti gli embedding
+        # Questo solo se devo sommare tutti gli embedding
+        for i in range(len(self.embedding)):
+            if self.concat:
+                cat_tmp = x[:, :, :, -len(self.embedding)+i].int()
+            else:
+                cat_tmp = x[:, :,:, -len(self.embedding)+i].int().unsqueeze(-1)
+            out.append(self.embedding[i](cat_tmp))
 
+        out = torch.cat(out,-1 if self.concat else -2)
+        out = out if self.concat else torch.sum(out, -2)
+        out = torch.cat((x[:,:,:,:-len(self.embedding)], out), -1)
+        
+        return out.float()
+        
 class pre_processing(torch.nn.Module):
     def __init__(self,
                  in_feat:int, 
                  out_feat:int, 
-                 categorical:list,
-                 dim_categorical:int, 
-                 concat:bool, 
-                 dropout:float, 
-                 embedding: bool):
+                 dropout:float):
         
         super(pre_processing, self).__init__()
-        self.in_feat = in_feat
-        self.concat = concat
-        self.embedding = embedding
-        self.embedding = nn.ModuleList([nn.Embedding(categorical[i], dim_categorical) for i in range(len(categorical))])
-        out = in_feat + (dim_categorical-1)*len(categorical) if concat else in_feat + dim_categorical - len(categorical)
-        self.linear = nn.Sequential(nn.Linear(in_features = out, out_features = 128),
+        self.linear = nn.Sequential(nn.Linear(in_features = in_feat, out_features = 128),
                                     nn.ReLU(), 
                                     nn.Dropout(dropout),
                                     nn.Linear(in_features = 128, out_features = 128),
@@ -29,36 +47,17 @@ class pre_processing(torch.nn.Module):
                                     nn.Linear(in_features = 128, out_features = out_feat, bias=False))
         
         
-    def forward(self, x):
-        if self.embedding:
-            out = []
-            # Con l'unsqueeze creo una nuova dimensione ed è come se mi salvassi per ogni features di ogni nodo di ogni batch tutti gli embedding
-            # Questo solo se devo sommare tutti gli embedding
-            for i in range(len(self.embedding)):
-                if self.concat:
-                    cat_tmp = x[:, :, :, -len(self.embedding)+i].int()
-                else:
-                    cat_tmp = x[:, :,:, -len(self.embedding)+i].int().unsqueeze(-1)
-                out.append(self.embedding[i](cat_tmp))
+    def forward(self, x):  
+        return self.linear(x.float())
 
-            out = torch.cat(out,-1 if self.concat else -2)
-            out = out if self.concat else torch.sum(out, -2)
-            out = torch.cat((x[:,:,:,:-len(self.embedding)], out), -1)
-  
-        out = self.linear(out.float())
-        
-        return out.float()
-
-    
-
-class my_gcnn(torch.nn.Module):
+class my_gat(torch.nn.Module):
 
     def __init__(self, 
                  in_channels: int, 
                  out_channels: int,
                  past:int, 
                  dim_hidden_emb:int = 128):
-        super(my_gcnn, self).__init__()
+        super(my_gat, self).__init__()
 
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -66,6 +65,8 @@ class my_gcnn(torch.nn.Module):
         self.lin = nn.Linear(in_channels, 
                              out_channels, 
                              bias = False)
+        self.a1 = nn.Parameter(torch.randn(in_channels))
+        self.a2 = nn.Parameter(torch.randn(in_channels))
         self.emb = nn.Linear(in_features = in_channels, 
                              out_features = dim_hidden_emb, 
                              bias = False)
@@ -76,11 +77,15 @@ class my_gcnn(torch.nn.Module):
         
         x, A = x0   
         x_emb = self.emb(x)
-        pi = torch.einsum('bdjk,bdik->bdij', x_emb, x_emb)
+        _, _, N, _ = x_emb.shape
+        ## <a,(h_i||h_j)>
+        a1 = torch.matmul(x_emb, self.a1).unsqueeze(-1).repeat(1,1,1,N)
+        a2 = torch.matmul(x_emb, self.a2).unsqueeze(-1).transpose(-2,-1).repeat(1,1,N, 1)
+        z = F.leaky_relu(a1+a2)
 
         # Apply the mask to fill values in the input tensor
         # sigmoid(Pi*X*W)
-        pi = F.softmax(pi.masked_fill(A == 0., -float('infinity')), -1)
+        pi = F.softmax(z.masked_fill(A == 0., -float('infinity')), -1)
         x = torch.einsum('bpik,bpkj->bpij', pi, x)
         x = F.sigmoid(self.lin(x))
         
@@ -118,7 +123,7 @@ class LSTMCell(nn.Module):
         return h, c
         
         
-class GLSTM(torch.nn.Module):
+class GAT_LSTM(torch.nn.Module):
     def __init__(self, 
                  in_feat:int, 
                  past: int, 
@@ -127,7 +132,6 @@ class GLSTM(torch.nn.Module):
                  device, 
                  out_preprocess:int = 128, 
                  dropout: float = 0.1, 
-                 embedding:bool = True, 
                  dim_categorical:int = 64, 
                  concat:bool = True,
                  num_layer_gnn:int = 1,
@@ -135,25 +139,26 @@ class GLSTM(torch.nn.Module):
                  hidden_lstm: int = 128, 
                  hidden_propagation:int = 128):
         
-        super(GLSTM, self).__init__()
-        print("GLSTM")
+        super(GAT_LSTM, self).__init__()
+        print("GAT_LSTM")
         self.in_feat = in_feat         # numero di features di ogni nodo prima del primo GAT        
         self.past = past 
         self.future = future
-        self.embedding = embedding
         self.hidden_gnn = hidden_gnn
         self.hidden_lstm = hidden_lstm
         self.device = device
         ########## PREPROCESSING PART #############        
         # preprossessing dell'input
+    
+        self.embedding = embedding_layer(categorical = categorical,
+                                           dim_categorical = dim_categorical, 
+                                           concat = concat)
         self.out_preprocess = out_preprocess
-        self.pre_processing = pre_processing(in_feat = in_feat, 
-                                             out_feat = out_preprocess, 
-                                             categorical = categorical,
-                                             embedding = embedding, 
-                                             dropout = dropout, 
-                                             dim_categorical = dim_categorical, 
-                                             concat = concat)
+        in_feat_preprocessing = in_feat + (dim_categorical-1)*len(categorical) if concat else in_feat + dim_categorical - len(categorical)
+        self.cat_index = in_feat-len(categorical)
+        self.pre_processing = pre_processing(in_feat = in_feat_preprocessing, 
+                                             out_feat = out_preprocess,
+                                             dropout = dropout)
         
         ########## FIRST GNN PART #############
         # LA CGNN mi permette di vedere spazialmente la situazione circostante
@@ -164,7 +169,7 @@ class GLSTM(torch.nn.Module):
         
         for i in range(num_layer_gnn):
             in_channels = self.out_preprocess if i == 0 else hidden_gnn
-            layers.append(my_gcnn(in_channels = in_channels, 
+            layers.append(my_gat(in_channels = in_channels, 
                                   out_channels = hidden_gnn, 
                                   past = past))            
         self.gnn = nn.Sequential(*layers)
@@ -179,20 +184,24 @@ class GLSTM(torch.nn.Module):
                                                 out_features = hidden_propagation),
                                       nn.ReLU(),
                                       nn.Linear(in_features = hidden_propagation,
-                                                out_features = self.future))
+                                                out_features = future))
                
-    def forward(self, x, adj):
+    def forward(self, input, adj):
         ########### pre-processing dei dati ##########
-        x = self.pre_processing(x)
-        nodes = x.shape[-2]
-        ########## GNN processing ######################
+        x = input 
+        emb = self.embedding(x)
+        x = self.pre_processing(emb)
+
+        ########## GAT processing ######################
         x, _ = self.gnn((x, adj))
         
-        batch_size, seq_len, nodes, features = x.size()
+        batch_size, seq_len, nodes, _ = x.size()
 
         # Initialize hidden and cell states
+        
         h, c = [torch.zeros(batch_size, nodes, self.hidden_lstm).to(x.device)] * 2
         for t in range(seq_len):
             h, c = self.lstm(x[:, t], (h, c))  
-        x = self.decoding(h)
-        return  x.transpose(-2,-1)
+        out = self.decoding(h).transpose(-2,-1)
+        
+        return  out

@@ -8,6 +8,7 @@ from models.GLSTM.training import training
 from plot import plot
 from data import covid_dataset
 
+
 def model_GLSTM(df_train : covid_dataset, 
                 df_val : covid_dataset, 
                 config_env: yaml, 

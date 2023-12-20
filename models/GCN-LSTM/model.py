@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
+
 class pre_processing(torch.nn.Module):
     def __init__(self,
                  in_feat:int, 
@@ -48,15 +50,13 @@ class pre_processing(torch.nn.Module):
         return out.float()
 
     
-
-class my_gat(torch.nn.Module):
-
+class my_gcn(torch.nn.Module):
     def __init__(self, 
                  in_channels: int, 
                  out_channels: int,
                  past:int, 
                  dim_hidden_emb:int = 128):
-        super(my_gat, self).__init__()
+        super(my_gcn, self).__init__()
 
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -73,15 +73,14 @@ class my_gat(torch.nn.Module):
                 x0: tuple) -> torch.tensor:
         
         x, A = x0   
-        x_emb = self.emb(x)
-        pi = torch.einsum('bdjk,bdik->bdij', x_emb, x_emb)
+        x_emb = self.emb(x)        
 
         # Apply the mask to fill values in the input tensor
         # sigmoid(Pi*X*W)
-        pi = F.softmax(pi.masked_fill(A == 0., -float('infinity')), -1)
-        x = torch.einsum('bpik,bpkj->bpij', pi, x)
-        x = F.sigmoid(self.lin(x))
-        
+        D_tilde = torch.diag((torch.sum(A,-1)+1)**(-0.5))
+        L_tilde = torch.eye(D_tilde.shape[0]).to(x.device.type)-D_tilde@A@D_tilde
+        H = torch.einsum('ik, bskj -> bsij',L_tilde.float(), x_emb)
+        x = F.sigmoid(H)
         return (x, A)
 
 class LSTMCell(nn.Module):
@@ -162,7 +161,7 @@ class GLSTM(torch.nn.Module):
         
         for i in range(num_layer_gnn):
             in_channels = self.out_preprocess if i == 0 else hidden_gnn
-            layers.append(my_gat(in_channels = in_channels, 
+            layers.append(my_gcnn(in_channels = in_channels, 
                                   out_channels = hidden_gnn, 
                                   past = past))            
         self.gnn = nn.Sequential(*layers)
