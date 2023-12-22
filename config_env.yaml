@@ -8,10 +8,10 @@ setting:
 
 paths:
     popolazione: '/home/andrea/Scrivania/Tesi/leonardo/data/popolazione.csv'
-    data: '/home/andrea/Scrivania/Tesi/leonardo/data'
+    data: '/home/andrea/Scrivania/Tesi/leonardo/data/dataset'
     adj: '/home/andrea/Scrivania/Tesi/leonardo/data/adj'
-    dati-province: '/home/andrea/Scrivania/Tesi/leonardo/data/dati-province'
-    dati-regioni: '/home/andrea/Scrivania/Tesi/leonardo/data/dati-regioni'
+    dati-province: '/home/andrea/Scrivania/Tesi/leonardo/data/raw_data/dati-province'
+    dati-regioni: '/home/andrea/Scrivania/Tesi/leonardo/data/raw_data/dati-regioni'
     models: '/home/andrea/Scrivania/Tesi/leonardo/best_models'
     config: '/home/andrea/Scrivania/Tesi/leonardo/config'
     list_models : '/home/andrea/Scrivania/Tesi/leonardo/models'

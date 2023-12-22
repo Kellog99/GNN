@@ -4,7 +4,7 @@ import torch.optim as optim
 import yaml
 from torch.utils.data import DataLoader
 from models.GLSTMseq2seq.model import GLSTMseq2seq
-from models.GLSTMseq2seq.training import training
+from training import training
 from plot import plot
 from data import covid_dataset
 

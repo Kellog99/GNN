@@ -1,9 +1,11 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import plotly.express as px
 import torch
-
+import yaml
+import torch.nn.functional as F
 
 def plot(model, 
          config,
@@ -13,6 +15,7 @@ def plot(model,
          dl_train,
          dl_val, 
          show = False):
+    
     fig = px.line({"epochs": range(1,len(loss_training)+1), 
                                    "train": loss_training, 
                                    "validation": loss_validation}, 
@@ -69,6 +72,49 @@ def plot(model,
     fig.suptitle(' Comparison between estimation and reality ', fontsize=20) 
     
     path = os.path.join(config['paths']['fig'],'covid', f"{name}.png")
+    plt.savefig(path)
+    if show:
+        plt.show()
+    plt.close(fig)
+
+def plot_stream(model, 
+                data: pd.DataFrame, 
+                config: yaml, 
+                time_step: int, 
+                adj:torch.tensor,
+                name:str, 
+                show:bool = False):
+    
+    past_step = model.past
+    fut = np.min((time_step, model.future))
+    date = np.sort(data.data.unique())
+    y = []
+    yh = []
+    x_date = []
+    for i in range(past_step, len(date)-past_step-fut):
+        x = data[data.data.isin(date[i-past_step:i])].drop(columns = 'data')
+        y.append(data[data.data == date[i+fut-1]].y.values)
+        x_date.append(date[i+past_step-1+fut])
+        x = x.values.reshape(1, past_step, 43, config['setting']['in_feat'])
+        yh.append(F.relu(model(torch.from_numpy(x).to(model.device), adj[0].to(model.device)).detach()).cpu()[:,fut, :])
+
+    yh = torch.cat(yh,0)
+    y = np.vstack(y) 
+    f = y.shape[-1]
+    fig, ax = plt.subplots(nrows = f, 
+                               ncols = 1, 
+                               constrained_layout = True,
+                               figsize = (20,f*3))
+    
+    for n in range(f):
+        ax[n].plot(y[:,n], label = 'real')
+        ax[n].plot(yh[:,n], label = 'estimated')
+        ax[n].legend()  
+        err = np.mean(np.abs(yh[:,n].numpy()-y[:,n]))
+        ax[n].title.set_text(f"node {n}, step {fut} train, err = {err}")
+    plt.show()
+    
+    path = os.path.join(config['paths']['fig'], f"{name}.png")
     plt.savefig(path)
     if show:
         plt.show()

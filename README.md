@@ -16,6 +16,23 @@ Future release will have
 After that all the models have been executed, it is printed the results of the training showing the ranking list of the models.
 The position is given by the loss function given in the begining to the model since is the one that is shared among all the models. This is important to say because there can be models that require additional terms to the loss in order to work, like the VAE use the KL divergence.
 
+## Data Manipulation
+Unlike a classical time series, this type of dataset contains for each timestep as many multidimensional vectors as there are nodes in the graph. The features of each node for each step in the past are equal.
+
+At the moment I assume that the variables associated with the nodes regarding the future are only categorical: date and node name.
+
+the variables of a node are of two types 
+1. numeric
+2. categorical 
+
+The numeric variables include the study target variable `y` while the last k columns of the dataset are associated with the k categorical variables associated with the nodes
+
+____
+|y|number|date|hour|id_workstation | number|
+|----|----|----|----|----|----|
+11.2|23|2023-09-09 |18|1027|50
+____
+## Models
 
 ### GCN
 The Graph Convolutional neural network use the augmented laplacian in order to do the convolution 
@@ -61,3 +78,5 @@ This produce the same exponent of the GAT's attention mechanism which is then no
     * The input should be the dataset, `past_step`, `future_step`.
     * The last columns are for categorical variables
     * The input of the dataset for the categorical variables is a list that contain the corresponding range of the variables in the dataset.
+5. Creare una classe Trainer in modo tale che posso richiamarla per fare evaluation con metriche diverse
+6. la funzione plot in `plot.py` deve mostrare l'ndamento ordinato nel tempo non la semplice rappresentazione con la distanza

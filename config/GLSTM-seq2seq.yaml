@@ -19,8 +19,7 @@ model:
     concat : True
     embedding : True
     dim_categorical : 128
-    in_feat : 12
 
 training:
     epochs: 300
-    batch_size: 50
+    batch_size: 2

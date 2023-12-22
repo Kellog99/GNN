@@ -115,7 +115,7 @@ class LSTMCell(nn.Module):
         return h, c
         
         
-class GLSTM(torch.nn.Module):
+class GCN_LSTM(torch.nn.Module):
     def __init__(self, 
                  in_feat:int, 
                  past: int, 
@@ -132,8 +132,8 @@ class GLSTM(torch.nn.Module):
                  hidden_lstm: int = 128, 
                  hidden_propagation:int = 128):
         
-        super(GLSTM, self).__init__()
-        print("GLSTM")
+        super(GCN_LSTM, self).__init__()
+        print("GCN_LSTM")
         self.in_feat = in_feat         # numero di features di ogni nodo prima del primo GAT        
         self.past = past 
         self.future = future
@@ -161,7 +161,7 @@ class GLSTM(torch.nn.Module):
         
         for i in range(num_layer_gnn):
             in_channels = self.out_preprocess if i == 0 else hidden_gnn
-            layers.append(my_gcnn(in_channels = in_channels, 
+            layers.append(my_gcn(in_channels = in_channels, 
                                   out_channels = hidden_gnn, 
                                   past = past))            
         self.gnn = nn.Sequential(*layers)

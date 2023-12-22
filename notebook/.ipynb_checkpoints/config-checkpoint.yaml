@@ -1,19 +1,19 @@
 dataset:
     col_data : ['data']
-    col_categorical_prov : ['codice_regione', 'denominazione_regione','codice_provincia', 'denominazione_provincia']
+    col_categorical_prov : ['codice_regione', 'codice_provincia']
     col_numerical_prov   : ['nuovi_casi']
-    col_categorical_reg : ['codice_regione',  'denominazione_regione']
-    col_numerical_reg   : ['ricoverati_con_sintomi', 'terapia_intensiva', 'totale_ospedalizzati', 'dimessi_guariti', 'deceduti', 'tamponi']
+    col_categorical_reg : ['codice_regione']
+    col_numerical_reg   : ['ricoverati_con_sintomi', 'terapia_intensiva', 'totale_ospedalizzati', 'dimessi_guariti', 'deceduti']
     ordering : ['data','codice_regione','codice_provincia']
-    numerical: ['ricoverati_con_sintomi', 'terapia_intensiva', 'totale_ospedalizzati', 'dimessi_guariti', 'deceduti', 'tamponi', 'popolazione', 'nuovi_casi']
+    numerical: ['ricoverati_con_sintomi', 'terapia_intensiva', 'totale_ospedalizzati', 'dimessi_guariti', 'deceduti', 'nuovi_casi']
     merge: ['data', 'codice_regione', 'denominazione_regione']
     target: ['nuovi_casi']
     aggregate: True
 
 setting:
     batch_size: 128
-    past_step: 20
-    future_step: 10
+    past_step: 30
+    future_step: 50
 
 model:
     categorical: [21, 112]
@@ -36,9 +36,10 @@ grid_search:
     
 paths:
     popolazione: '/home/andrea/Scrivania/Tesi/leonardo/data/popolazione.csv'
-    data: '/home/andrea/Scrivania/Tesi/leonardo/data'
+    data: '/home/andrea/Scrivania/Tesi/leonardo/data/dataset'
+    raw_data: '/home/andrea/Scrivania/Tesi/leonardo/data/raw_data'
     adj: '/home/andrea/Scrivania/Tesi/leonardo/data/adj'
-    dati-province: '/home/andrea/Scrivania/Tesi/leonardo/data/dati-province'
-    dati-regioni: '/home/andrea/Scrivania/Tesi/leonardo/data/dati-regioni'
     models: '/home/andrea/Scrivania/Tesi/leonardo/best_models'
+    config: '/home/andrea/Scrivania/Tesi/leonardo/config'
+    list_models : '/home/andrea/Scrivania/Tesi/leonardo/models'
     fig: '/home/andrea/Scrivania/Tesi/leonardo/figures'

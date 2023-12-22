@@ -11,9 +11,10 @@ from data import covid_dataset
 def model_GAT_LSTMseq2seq(df_train : covid_dataset, 
                 df_val : covid_dataset, 
                 config_env: yaml, 
-                loss_function):
-
-    with open("/home/andrea/Scrivania/Tesi/leonardo/models/GAT_LSTMseq2seq/config.yaml", 'r') as f:
+                loss_function: callable):
+    
+    id_model = "GAT-LSTMseq2seq"
+    with open(os.path.join(config_env['paths']['config'], f"{id_model}.yaml"), 'r') as f:
         config = yaml.safe_load(f)
         
     config.update(config_env)
@@ -25,7 +26,7 @@ def model_GAT_LSTMseq2seq(df_train : covid_dataset,
     batch_size= config['training']['batch_size']
     past_step = config['setting']['past_step']
     future_step = config['setting']['future_step']
-    id_model = f"GAT_LSTMseq2seq_{past_step}_{future_step}"
+    id_test = f"GAT_LSTMseq2seq_{past_step}_{future_step}"
     ################################################
 
     ############### Dataloader #####################
@@ -57,7 +58,7 @@ def model_GAT_LSTMseq2seq(df_train : covid_dataset,
                                                 criterion = loss_function,
                                                 optimizer = optimizer)
     
-    torch.save(model.state_dict(), os.path.join(config['paths']['models'], f"{id_model}.pt"))
+    torch.save(model.state_dict(), os.path.join(config['paths']['models'], f"{id_test}.pt"))
     #################################################
 
     plot(model,
@@ -66,7 +67,7 @@ def model_GAT_LSTMseq2seq(df_train : covid_dataset,
         loss_validation, 
         dl_train=dl_train, 
         dl_val=dl_val, 
-        name = f"{id_model}", 
+        name = f"{id_test}", 
         show = False)
 
     return min(loss_validation)
