@@ -26,7 +26,6 @@ class dataset(Dataset):
         self.x = []
         self.y = []
         self.adj = adj
-
         date = df[col_data].unique()
         date.sort()
         start = 0

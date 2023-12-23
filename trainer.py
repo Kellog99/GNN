@@ -52,8 +52,9 @@ class Trainer():
                 self._train(train_loader)
                 
                 # validate
-                loss_val = self._validate(val_loader)
+                self._validate(val_loader)
 
+                
                 if (epoch+1)%self.step_scheduler ==0:
                     self.scheduler.step()
                     

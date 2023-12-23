@@ -5,12 +5,11 @@ import yaml
 from torch.utils.data import DataLoader
 from models.GCN_LSTM.model import GCN_LSTM
 from plot import plot
-from data import covid_dataset
+from data import dataset
 from trainer import Trainer
 
-
-def get_model(df_train : covid_dataset, 
-                df_val : covid_dataset, 
+def get_model(df_train : dataset, 
+                df_val : dataset, 
                 config_env: yaml, 
                 loss_function):
 
@@ -27,12 +26,14 @@ def get_model(df_train : covid_dataset,
     batch_size= config['training']['batch_size']
     past_step = config['setting']['past_step']
     future_step = config['setting']['future_step']
-    id_model = f"{id_model}_{past_step}_{future_step}"
+    id_test = f"{id_model}_{past_step}_{future_step}"
     ################################################
 
     ############### Dataloader #####################
     dl_train = DataLoader(dataset = df_train, batch_size = batch_size, shuffle = True)
     dl_val = DataLoader(dataset = df_val, batch_size = batch_size, shuffle = True)
+    batch, _, _ = next(iter(dl_train))
+    print(batch.shape)
     ################################################
 
     ################ Model #########################
@@ -40,8 +41,7 @@ def get_model(df_train : covid_dataset,
     model = GCN_LSTM(in_feat = config['setting']['in_feat'], 
                 past = past_step,
                 future = future_step,
-                categorical = config['model']['categorical'],
-                embedding = config['model']['embedding'],
+                categorical = config['categorical'][config['setting']['dataset']],
                 device = device).to(device)
         
     optimizer = optim.Adam(model.parameters(), 
@@ -51,24 +51,21 @@ def get_model(df_train : covid_dataset,
 
     ################ Training ######################
     trainer = Trainer(model = model, 
-                      PATH = os.path.join(config['paths']['models'], f"{id_model}.pt"), 
+                      PATH = os.path.join(config['paths']['models'], f"{id_test}.pt"), 
                       optimizer=optimizer, 
                       loss_function=loss_function)
     
     trainer.fit(train_loader = dl_train, 
                 val_loader = dl_val, 
                 epochs = config['training']['epochs'])
-    
-    torch.save(model.state_dict(), os.path.join(config['paths']['models'], f"{id_model}.pt"))
     #################################################
 
-    plot(trainer.model,
-        config,
-        trainer.loss_train, 
-        trainer.loss_val, 
+    plot(model = trainer.model,
+        config = config,
+        loss_training = trainer.loss_train, 
+        loss_validation = trainer.loss_val, 
         dl_train = dl_train, 
         dl_val = dl_val, 
-        name = f"{id_model}", 
-        show = False)
+        name = f"{id_test}")
 
     return min(trainer.loss_val)

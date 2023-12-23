@@ -6,16 +6,18 @@ import plotly.express as px
 import torch
 import yaml
 import torch.nn.functional as F
+from tqdm import tqdm
+from torch.utils.data import DataLoader
 
 def plot(model, 
-         config,
-         loss_training, 
-         loss_validation, 
-         name,
-         dl_train,
-         dl_val, 
+         config:yaml,
+         loss_training: list, 
+         loss_validation: list, 
+         name:str,
+         dl_train: DataLoader,
+         dl_val: DataLoader, 
          show = False):
-    
+
     fig = px.line({"epochs": range(1,len(loss_training)+1), 
                                    "train": loss_training, 
                                    "validation": loss_validation}, 
@@ -29,34 +31,16 @@ def plot(model,
         fig.show()
     model = model.cpu()
     model.device = torch.device('cpu')
-    if config['dataset']['aggregate']:
-        batch_train, y_train, adj_train = next(iter(dl_train))
-        batch_val, y_val, adj_val = next(iter(dl_val))
-        yh_train = model(batch_train.float().to(model.device), adj_train.to(model.device)).detach().numpy()
-        yh_val = model(batch_val.float().to(model.device), adj_val.to(model.device)).detach().numpy()
-    else:
-        yh_train = []
-        yh_val = []
-        y_train = []
-        y_val = []
-        for key in dl_train.keys():
-            batch_train, yt, adj_train = next(iter(dl_train[key]))
-            batch_val, yv, adj_val = next(iter(dl_val[key]))
-            yh_train.append(model(batch_train.float().to(model.device), adj_train.to(model.device)).cpu())
-            yh_val.append(model(batch_val.float().to(model.device), adj_val.to(model.device)).cpu())
-            y_train.append(yt)
-            y_val.append(yv)
-        
-        yh_train = torch.cat(yh_train, -2).transpose(-1,-2)
-        yh_val = torch.cat(yh_val, -2).transpose(-1,-2).detach().numpy()
-        y_train = torch.cat(y_train, -1).detach().numpy()
-        y_val = torch.cat(y_val, -1).detach().numpy()
+    
+    batch_train, y_train, adj_train = next(iter(dl_train))
+    batch_val, y_val, adj_val = next(iter(dl_val))
+    yh_train = model(batch_train.float().to(model.device), adj_train[0].to(model.device)).detach().numpy()
+    yh_val = model(batch_val.float().to(model.device), adj_val[0].to(model.device)).detach().numpy()
 
-    lenght = 3*y_val.shape[1]
     fig, ax = plt.subplots(nrows = y_val.shape[1], 
                            ncols = 2, 
                            constrained_layout = True,
-                           figsize = (20,lenght))
+                           figsize = (20, 3*y_val.shape[1]))
     
     for day in range(y_val.shape[1]):
         ax[day, 0].plot(yh_train[0,day], label = "estimate")
@@ -71,7 +55,7 @@ def plot(model,
         ax[day, 1].title.set_text(f"day {day +1} validation")
     fig.suptitle(' Comparison between estimation and reality ', fontsize=20) 
     
-    path = os.path.join(config['paths']['fig'],'covid', f"{name}.png")
+    path = os.path.join(config['paths']['fig'],config['setting']['dataset'], f"{name}.png")
     plt.savefig(path)
     if show:
         plt.show()
@@ -80,42 +64,50 @@ def plot(model,
 def plot_stream(model, 
                 data: pd.DataFrame, 
                 config: yaml, 
-                time_step: int, 
                 adj:torch.tensor,
                 name:str, 
+                timedelta: str = 'D',
                 show:bool = False):
-    
+    n_nodes = config['setting']['in_feat']
     past_step = model.past
-    fut = np.min((time_step, model.future))
+    future_step = model.future
     date = np.sort(data.data.unique())
     y = []
     yh = []
     x_date = []
-    for i in range(past_step, len(date)-past_step-fut):
-        x = data[data.data.isin(date[i-past_step:i])].drop(columns = 'data')
-        y.append(data[data.data == date[i+fut-1]].y.values)
-        x_date.append(date[i+past_step-1+fut])
-        x = x.values.reshape(1, past_step, 43, config['setting']['in_feat'])
-        yh.append(F.relu(model(torch.from_numpy(x).to(model.device), adj[0].to(model.device)).detach()).cpu()[:,fut, :])
-
+    start = 0
+    dt = np.diff(date[:past_step+future_step]) == np.timedelta64(1, timedelta)
+    while any(not x for x in dt):
+        start +=1
+        dt = np.diff(date[start:past_step+future_step+ start]) == np.timedelta64(1, timedelta)
+    
+    for i in tqdm(range(start, len(date)-future_step-past_step-1)):
+        if date[i+past_step+future_step]-date[i+past_step+future_step-1] == np.timedelta64(1, timedelta): 
+            x = data[data.data.isin(date[i:i+past_step])].drop(columns = 'data').values
+            x = x.reshape(1, past_step, n_nodes, config['setting']['in_feat'])
+            tmp = data[data.data.isin(date[i+past_step:i+past_step+future_step])].y.values
+            y.append(tmp.reshape(1, future_step, n_nodes))
+            yh.append(F.relu(model(torch.from_numpy(x).to(model.device), adj[0].to(model.device)).detach()).cpu())
+        else:
+             i += past_step+future_step 
+    
     yh = torch.cat(yh,0)
     y = np.vstack(y) 
     f = y.shape[-1]
-    fig, ax = plt.subplots(nrows = f, 
-                               ncols = 1, 
-                               constrained_layout = True,
-                               figsize = (20,f*3))
+    for step in range(model.future):
+        fig, ax = plt.subplots(nrows = f, 
+                                   ncols = 1, 
+                                   constrained_layout = True,
+                                   figsize = (20,f*3))
     
-    for n in range(f):
-        ax[n].plot(y[:,n], label = 'real')
-        ax[n].plot(yh[:,n], label = 'estimated')
-        ax[n].legend()  
-        err = np.mean(np.abs(yh[:,n].numpy()-y[:,n]))
-        ax[n].title.set_text(f"node {n}, step {fut} train, err = {err}")
-    plt.show()
-    
-    path = os.path.join(config['paths']['fig'], f"{name}.png")
-    plt.savefig(path)
-    if show:
-        plt.show()
-    plt.close(fig)
+        for n in range(f):
+            ax[n].plot(y[:,step,n], label = 'real')
+            ax[n].plot(yh[:,step, n], label = 'estimated')
+            ax[n].legend()  
+
+            err = np.mean(np.abs(yh[:,step, n].numpy()-y[:,step, n]))
+            ax[n].title.set_text(f"node {n}, step {step} train, err = {err}")
+        
+        path = os.path.join(config['paths']['fig_flows'], f"{name}", f"step{step+1}.png")
+        plt.savefig(path)
+        plt.close()

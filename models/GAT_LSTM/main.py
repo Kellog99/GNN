@@ -4,16 +4,16 @@ import torch.optim as optim
 import yaml
 from torch.utils.data import DataLoader
 from models.GAT_LSTM.model import GAT_LSTM
-from training import training
 from plot import plot
-from data import covid_dataset
+from data import dataset
+from trainer import Trainer
 
-def model_GAT_LSTM(df_train : covid_dataset, 
-                df_val : covid_dataset, 
+def get_model(df_train : dataset, 
+                df_val : dataset, 
                 config_env: yaml, 
                 loss_function):
 
-    id_model = "GAT-LSTMseq2seq"
+    id_model = "GAT-LSTM"
     with open(os.path.join(config_env['paths']['config'], f"{id_model}.yaml"), 'r') as f:
         config = yaml.safe_load(f)
         
@@ -42,7 +42,7 @@ def model_GAT_LSTM(df_train : covid_dataset,
     model = GAT_LSTM(in_feat = in_feat, 
                 past = past_step,
                 future = future_step,
-                categorical = config['model']['categorical'],
+                categorical = config['categorical'][config['setting']['dataset']],
                 device = device).to(device)
         
     optimizer = optim.Adam(model.parameters(), 
@@ -50,24 +50,23 @@ def model_GAT_LSTM(df_train : covid_dataset,
                            weight_decay = float(config['setting']['weight_decay']))
     ################################################
 
-    ################ Training ######################
-    model, loss_training, loss_validation = training(model, 
-                                                    train_loader = dl_train, 
-                                                    val_loader = dl_val, 
-                                                    num_epochs = config['setting']['epochs'], 
-                                                    criterion = loss_function,
-                                                    optimizer = optimizer)
+     ################ Training ######################
+    trainer = Trainer(model = model, 
+                      PATH = os.path.join(config['paths']['models'], f"{id_test}.pt"), 
+                      optimizer=optimizer, 
+                      loss_function=loss_function)
     
-    torch.save(model.state_dict(), os.path.join(config['paths']['models'], f"{id_test}.pt"))
+    trainer.fit(train_loader = dl_train, 
+                val_loader = dl_val, 
+                epochs = config['training']['epochs'])    
     #################################################
 
-    plot(model,
-        config,
-        loss_training, 
-        loss_validation, 
-        dl_train=dl_train, 
-        dl_val=dl_val, 
-        name = f"{id_test}", 
-        show = False)
+    plot(model = trainer.model,
+        config = config,
+        loss_training = trainer.loss_train, 
+        loss_validation = trainer.loss_val, 
+        dl_train = dl_train, 
+        dl_val = dl_val, 
+        name = f"{id_test}")
 
-    return min(loss_validation)
+    return min(trainer.loss_val)

@@ -14,9 +14,10 @@ setting:
     batch_size: 128
     past_step: 30
     future_step: 50
+    in_feat: 12
 
 model:
-    categorical: [21, 112]
+    categorical: [21, 112, 4, 12, 31]
     num_layer_gnn : 2
     out_preprocess : 256
     dropout : 0.15
@@ -43,3 +44,4 @@ paths:
     config: '/home/andrea/Scrivania/Tesi/leonardo/config'
     list_models : '/home/andrea/Scrivania/Tesi/leonardo/models'
     fig: '/home/andrea/Scrivania/Tesi/leonardo/figures'
+    fig_flows: '/home/andrea/Scrivania/Tesi/leonardo/figures/covid/flows'
