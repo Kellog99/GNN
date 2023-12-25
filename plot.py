@@ -26,7 +26,7 @@ def plot(model,
                                   title= f"training loss for {name}")
     fig.add_vline(x = np.argsort(loss_validation)[0]+1)
     fig.add_hline(y = np.min(loss_validation))
-    fig.write_html(os.path.join(config['paths']['fig'],'covid', f"loss_gnn_{name}.html"))
+    fig.write_html(os.path.join(config['paths']['fig'], config['setting']['dataset'], f"loss_gnn_{name}.html"))
     if show:
         fig.show()
     model = model.cpu()
