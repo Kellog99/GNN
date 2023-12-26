@@ -65,16 +65,14 @@ def plot_stream(model,
                 data: pd.DataFrame, 
                 config: yaml, 
                 adj:torch.tensor,
+                n_nodes:int, 
                 name:str, 
-                timedelta: str = 'D',
-                show:bool = False):
-    n_nodes = config['setting']['in_feat']
+                timedelta: str = 'D'):
     past_step = model.past
     future_step = model.future
     date = np.sort(data.data.unique())
     y = []
     yh = []
-    x_date = []
     start = 0
     dt = np.diff(date[:past_step+future_step]) == np.timedelta64(1, timedelta)
     while any(not x for x in dt):
@@ -108,6 +106,8 @@ def plot_stream(model,
             err = np.mean(np.abs(yh[:,step, n].numpy()-y[:,step, n]))
             ax[n].title.set_text(f"node {n}, step {step} train, err = {err}")
         
-        path = os.path.join(config['paths']['fig_flows'], f"{name}", f"step{step+1}.png")
-        plt.savefig(path)
-        plt.close()
+        path = os.path.join(config['paths']['fig'], config['setting']['dataset'], 'flows', name)
+        if not os.path.exists(path):
+            os.mkdir(path)
+        plt.savefig(os.path.join(path, f"step{step+1}.png"))
+        plt.close(fig)

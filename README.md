@@ -14,7 +14,21 @@ Future release will have
 * ARMA
 
 After that all the models have been executed, it is printed the results of the training showing the ranking list of the models.
-The position is given by the loss function given in the begining to the model since is the one that is shared among all the models. This is important to say because there can be models that require additional terms to the loss in order to work, like the VAE use the KL divergence.
+
+The order is given by the loss function given in the begining to the model since is the one that is shared among all the models. This is important to say because there can be models that require additional terms to the loss in order to work, like the VAE use the KL divergence.
+
+Here there are the results of this procedure for the telephone dataset:
+
+|model|score|
+|----|----|
+|GLSTMseq2seq|2210.542999267578|
+|GAT_LSTMseq2seq|2347.313934326172|
+|GLSTM|5316.68505859375|
+|GAT_LSTM|5443.055419921875|
+|GCN_LSTM|5471.723876953125|
+
+Once everything has been computed, with the best model it is plotted the whole time series
+
 
 ## Data Manipulation
 Unlike a classical time series, this type of dataset contains for each timestep as many multidimensional vectors as there are nodes in the graph. The features of each node for each step in the past are equal.
