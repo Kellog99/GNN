@@ -37,12 +37,11 @@ class pre_processing(torch.nn.Module):
                  dropout:float):
         
         super(pre_processing, self).__init__()
-        self.linear = nn.Sequential(nn.Linear(in_features = in_feat, out_features = 128),
+        self.linear = nn.Sequential(nn.Dropout(dropout),
+                                    nn.Linear(in_features = in_feat, out_features = 128),
                                     nn.ReLU(), 
-                                    nn.Dropout(dropout),
                                     nn.Linear(in_features = 128, out_features = 128),
                                     nn.ReLU(),
-                                    nn.Dropout(dropout),
                                     nn.Linear(in_features = 128, out_features = out_feat, bias=False))
         
         

@@ -1,15 +1,3 @@
-dataset:
-    col_data : ['data']
-    col_categorical_prov : ['codice_regione', 'denominazione_regione','codice_provincia', 'denominazione_provincia']
-    col_numerical_prov   : ['nuovi_casi']
-    col_categorical_reg : ['codice_regione',  'denominazione_regione']
-    col_numerical_reg   : ['ricoverati_con_sintomi', 'terapia_intensiva', 'totale_ospedalizzati', 'dimessi_guariti', 'deceduti', 'tamponi']
-    ordering : ['data','codice_regione','codice_provincia']
-    numerical: ['ricoverati_con_sintomi', 'terapia_intensiva', 'totale_ospedalizzati', 'dimessi_guariti', 'deceduti', 'tamponi', 'popolazione', 'nuovi_casi']
-    merge: ['data', 'codice_regione', 'denominazione_regione']
-    target: ['nuovi_casi']
-    aggregate: True
-
 model:
     categorical: [21, 112]
     num_layer_gnn : 2

@@ -20,6 +20,8 @@ def get_model(df_train : dataset,
 
     if 'epochs' in config_env['setting'].keys():
         config['training']['epochs'] = config_env['setting']['epochs']
+    if 'dropout' in config_env['setting'].keys():
+        config['model']['dropout'] = config_env['setting']['dropout']
     
     ############### Characterization ###############
     batch_size= config['training']['batch_size']
@@ -39,9 +41,11 @@ def get_model(df_train : dataset,
     
     ################ Model #########################
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(config['model']['dropout'])
     model = GLSTMseq2seq(in_feat = in_feat, 
                         past = past_step,
                         future = future_step,
+                        dropout = float(config['model']['dropout']), 
                         categorical = config['categorical'][config['setting']['dataset']],
                         device = device).to(device)
     
@@ -60,13 +64,13 @@ def get_model(df_train : dataset,
                 val_loader = dl_val, 
                 epochs = config['training']['epochs'])
     #################################################
-
-    plot(model = trainer.model,
-        config = config,
-        loss_training = trainer.loss_train, 
-        loss_validation = trainer.loss_val, 
-        dl_train = dl_train, 
-        dl_val = dl_val, 
-        name = f"{id_test}")
+    if config['setting']['plot']:
+        plot(model = trainer.model,
+            config = config,
+            loss_training = trainer.loss_train, 
+            loss_validation = trainer.loss_val, 
+            dl_train = dl_train, 
+            dl_val = dl_val, 
+            name = f"{id_test}")
 
     return min(trainer.loss_val)

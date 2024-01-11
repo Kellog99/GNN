@@ -5,8 +5,9 @@ setting:
     lr : 1e-4
     weight_decay : 3e-4
     alpha : 7e-5
-    epochs : 2000
+    epochs : 1
     in_feat: 7
+    plot: False
     
 categorical:
     covid: [21, 112, 4, 12, 31]

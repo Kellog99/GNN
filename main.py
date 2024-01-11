@@ -44,19 +44,18 @@ if __name__ == "__main__":
     for model in os.listdir(config['paths']['list_models']):
         # mi inserisco all'interno del folder di ciascun modello
         ################## IMPORTING THE FUNCTION ####################
-        if model != 'README.md':
-            file_path = os.path.join(config['paths']['list_models'], model, 'main.py')
-            print(file_path)
-            # Create a module spec
-            spec = imp.spec_from_file_location('main.py', file_path)
-            # Import the module
-            module = imp.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            be = module.get_model(df_train = df_train, 
-                            df_val = df_val, 
-                            config_env = config,
-                            loss_function = loss_function)
-            scores[f"{model}"] = be
+        file_path = os.path.join(config['paths']['list_models'], model, 'main.py')
+        print(file_path)
+        # Create a module spec
+        spec = imp.spec_from_file_location('main.py', file_path)
+        # Import the module
+        module = imp.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        be = module.get_model(df_train = df_train, 
+                        df_val = df_val, 
+                        config_env = config,
+                        loss_function = loss_function)
+        scores[f"{model}"] = be
 
         # it allows to delete all the objects that were stored into the GPU
         # in this way the memory of the GPU is cleared
