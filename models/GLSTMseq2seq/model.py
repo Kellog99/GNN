@@ -187,9 +187,8 @@ class GLSTMseq2seq(torch.nn.Module):
                                       nn.Linear(in_features = hidden_propagation,
                                                 out_features = 1))
                
-    def forward(self, input, adj):
+    def forward(self, x, adj):
         ########### pre-processing dei dati ##########
-        x = input 
         emb = self.embedding(x)
         x = self.pre_processing(emb)
         nodes = x.shape[-2]

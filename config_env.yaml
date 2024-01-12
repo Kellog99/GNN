@@ -1,5 +1,5 @@
 setting:
-    dataset: 'telephone'
+    dataset: 'covid'
     past_step : 30
     future_step : 50
     lr : 1e-4
@@ -10,7 +10,7 @@ setting:
     plot: False
     
 categorical:
-    covid: [21, 112, 4, 12, 31]
+    covid: [21, 112, 4, 12, 31, 7, 2]
     telephone: [43, 1, 1, 30, 3, 24]
 
 paths:

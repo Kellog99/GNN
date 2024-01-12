@@ -14,7 +14,7 @@ def get_dataloader(config:yaml)-> (dataset, dataset):
     past_step = config['setting']['past_step']
     future_step = config['setting']['future_step']
 
-    with open( os.path.join(config['paths']['data'],f"{config['setting']['dataset']}_{past_step}_{future_step}.pkl"), 'rb') as f:
+    with open( os.path.join(config['paths']['data'],config['setting']['dataset'],f"{past_step}_{future_step}.pkl"), 'rb') as f:
         dataset = pickle.load(f) 
     
     config['setting']['in_feat'] =  dataset.x[0].shape[-1]
@@ -40,12 +40,12 @@ if __name__ == "__main__":
     loss_function = partial(linfty, alpha = float(config['setting']['alpha']))
     df_train, df_val = get_dataloader(config = config)
     scores = {}
-
+    print(os.listdir(config['paths']['list_models']))
     for model in os.listdir(config['paths']['list_models']):
         # mi inserisco all'interno del folder di ciascun modello
         ################## IMPORTING THE FUNCTION ####################
         file_path = os.path.join(config['paths']['list_models'], model, 'main.py')
-        print(file_path)
+        print(model)
         # Create a module spec
         spec = imp.spec_from_file_location('main.py', file_path)
         # Import the module

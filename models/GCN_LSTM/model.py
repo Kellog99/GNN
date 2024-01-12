@@ -2,53 +2,42 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+class embedding_layer(torch.nn.Module):
+    def __init__(self,
+                 categorical:list,
+                 dim_categorical:int, 
+                 concat:bool):
+        
+        super(embedding_layer, self).__init__()
+        self.concat = concat
+        self.embedding = nn.ModuleList([nn.Embedding(categorical[i], dim_categorical) for i in range(len(categorical))])
+    def forward(self, x):
+    
+        out = 0.0
+        # Con l'unsqueeze creo una nuova dimensione ed è come se mi salvassi per ogni features di ogni nodo di ogni batch tutti gli embedding
+        # Questo solo se devo sommare tutti gli embedding
 
-
+        for i in range(len(self.embedding)):
+            out += self.embedding[i](x[:,:,:, i])    
+        return out.float()
+        
 class pre_processing(torch.nn.Module):
     def __init__(self,
                  in_feat:int, 
                  out_feat:int, 
-                 categorical:list,
-                 dim_categorical:int, 
-                 concat:bool, 
-                 dropout:float, 
-                 embedding: bool):
+                 dropout:float):
         
         super(pre_processing, self).__init__()
-        self.in_feat = in_feat
-        self.concat = concat
-        self.embedding = embedding
-        self.embedding = nn.ModuleList([nn.Embedding(categorical[i], dim_categorical) for i in range(len(categorical))])
-        out = in_feat + (dim_categorical-1)*len(categorical) if concat else in_feat + dim_categorical - len(categorical)
-        self.linear = nn.Sequential(nn.Linear(in_features = out, out_features = 128),
+        self.linear = nn.Sequential(nn.Dropout(dropout),
+                                    nn.Linear(in_features = in_feat, out_features = 128),
                                     nn.ReLU(), 
-                                    nn.Dropout(dropout),
                                     nn.Linear(in_features = 128, out_features = 128),
                                     nn.ReLU(),
-                                    nn.Dropout(dropout),
                                     nn.Linear(in_features = 128, out_features = out_feat, bias=False))
         
         
-    def forward(self, x):
-        if self.embedding:
-            out = []
-            # Con l'unsqueeze creo una nuova dimensione ed è come se mi salvassi per ogni features di ogni nodo di ogni batch tutti gli embedding
-            # Questo solo se devo sommare tutti gli embedding
-            for i in range(len(self.embedding)):
-                if self.concat:
-                    cat_tmp = x[:, :, :, -len(self.embedding)+i].int()
-                else:
-                    cat_tmp = x[:, :,:, -len(self.embedding)+i].int().unsqueeze(-1)
-                out.append(self.embedding[i](cat_tmp))
-
-            out = torch.cat(out,-1 if self.concat else -2)
-            out = out if self.concat else torch.sum(out, -2)
-            out = torch.cat((x[:,:,:,:-len(self.embedding)], out), -1)
-  
-        out = self.linear(out.float())
-        
-        return out.float()
-
+    def forward(self, x):  
+        return self.linear(x.float())
     
 class my_gcn(torch.nn.Module):
     def __init__(self, 
@@ -75,10 +64,9 @@ class my_gcn(torch.nn.Module):
         x, A = x0   
         x_emb = self.emb(x)        
 
-        # Apply the mask to fill values in the input tensor
-        # sigmoid(Pi*X*W)
         D_tilde = torch.diag((torch.sum(A,-1)+1)**(-0.5))
-        L_tilde = torch.eye(D_tilde.shape[0]).to(x.device.type)-D_tilde@A@D_tilde
+        L_tilde = torch.eye(D_tilde.shape[0]).to(x.device.type)-torch.matmul(torch.matmul(D_tilde, A), D_tilde)
+
         H = torch.einsum('ik, bskj -> bsij',L_tilde.float(), x_emb)
         x = F.sigmoid(H)
         return (x, A)
@@ -140,17 +128,17 @@ class GCN_LSTM(torch.nn.Module):
         self.embedding = embedding
         self.hidden_gnn = hidden_gnn
         self.hidden_lstm = hidden_lstm
+        self.categorical = categorical
         self.device = device
         ########## PREPROCESSING PART #############        
         # preprossessing dell'input
-        self.out_preprocess = out_preprocess
-        self.pre_processing = pre_processing(in_feat = in_feat, 
+        self.embedding = embedding_layer(categorical = categorical,
+                                           dim_categorical = dim_categorical, 
+                                           concat = concat)
+        in_feat_preprocessing = in_feat + dim_categorical - len(categorical)
+        self.pre_processing = pre_processing(in_feat = in_feat_preprocessing, 
                                              out_feat = out_preprocess, 
-                                             categorical = categorical,
-                                             embedding = embedding, 
-                                             dropout = dropout, 
-                                             dim_categorical = dim_categorical, 
-                                             concat = concat)
+                                             dropout = dropout)
         
         ########## FIRST GNN PART #############
         # LA CGNN mi permette di vedere spazialmente la situazione circostante
@@ -160,7 +148,7 @@ class GCN_LSTM(torch.nn.Module):
         layers = []
         
         for i in range(num_layer_gnn):
-            in_channels = self.out_preprocess if i == 0 else hidden_gnn
+            in_channels = out_preprocess if i == 0 else hidden_gnn
             layers.append(my_gcn(in_channels = in_channels, 
                                   out_channels = hidden_gnn, 
                                   past = past))            
@@ -179,7 +167,9 @@ class GCN_LSTM(torch.nn.Module):
                                                 out_features = self.future))
                
     def forward(self, x, adj):
-        ########### pre-processing dei dati ##########
+         ########### pre-processing dei dati ##########
+        emb = self.embedding(x[:,:,:,-len(self.categorical):].int())
+        x = torch.cat((x[:,:,:,:-len(self.categorical)], emb), -1)
         x = self.pre_processing(x)
         nodes = x.shape[-2]
         ########## GNN processing ######################
