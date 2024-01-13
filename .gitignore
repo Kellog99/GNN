@@ -7,7 +7,7 @@
 /__pycache__/
 /notebook/__pycache__/
 /best_models/
-
+*/__pycache__/
 # cartelle con altri dataset di testing
 /networks/
 /traffic/

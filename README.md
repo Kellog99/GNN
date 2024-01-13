@@ -53,7 +53,7 @@ X_t = (c_t|w_t)$ where $c_t\in\mathcal{C}, w_t\in \mathcal{W}$.
 
 ***   
 **Important**  
-For simplicity, it is assumed that the categorical variables are always known, i.e. $\{w_t\}_{t\in T}$ is a predictable process.  
+For simplicity, it is assumed that the categorical variables are always known, i.e. $`\{w_t\}_{t\in T}`$ is a predictable process.  
 ***   
 Since this library talks about graph it is important to give a formal definition of graph.
 
@@ -133,6 +133,18 @@ Operatively speaking the Dataset class will produce for every `idx`
 ____
 <!-- TOC --><a name="graph-neural-networks-gnns-and-diffusion-models-introduction"></a>
 # Graph Neural Networks (GNNs) and Diffusion Models Introduction
+
+Every model is composed of 3 main part:
+1. _Pre-Processing of the input_  
+   Since every vector associated with a node has categorical variables first it is necessary to embbed them and then process the whole input with a simple feed forward neural network.
+2. _Embedding of the graph_   
+   In this part, for all the steps the whole graph is embedded using a Graph neural network. This part will be better explained in the `Models` part.
+3. _Projection_   
+   This part takes all the embedded features and then create a projection in the future of size $|y|\times|V|\times m$
+
+
+## Projection
+Before talking about the inner model. It is usefull to talk about how the model forecast the values.
 <!-- TOC --><a name="5-models"></a>
 ##  5. <a name='Models'></a>Models
 
