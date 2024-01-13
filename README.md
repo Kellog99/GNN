@@ -121,11 +121,15 @@ A = \begin{bmatrix}0&1&1&1&1&0&0&0&1\\
 0&0&0&1&0&0&1&0&0\\
 0&0&0&0&0&1&0&1&0\\
 0&0&0&1&0&0&1&0&0\\
-1&0&0&0&0&0&0&0&0\\
+1&0&0&0&0&0&0&0&0
 \end{bmatrix}
 ```
 
-
+Operatively speaking the Dataset class will produce for every `idx`
+ the following 
+ ```
+ xp, xf, adj, y = next(iter(Dataset))
+ ```
 ____
 <!-- TOC --><a name="graph-neural-networks-gnns-and-diffusion-models-introduction"></a>
 # Graph Neural Networks (GNNs) and Diffusion Models Introduction
@@ -137,7 +141,7 @@ ____
 The Graph Convolutional neural network use the augmented laplacian in order to do the convolution 
 Let $G=(V, E)$ be a graph and denote $D, A$ respectively the degree and the adjacency matrix of $G$. Then the augmented Laplacian matrix is 
 ```math
-    \Tilde{L}=\Tilde{D}^{-\frac{1}{2}}L\Tilde{D}^{-\frac{1}{2}}= I-\Tilde{D}^{-\frac{1}{2}}\Tilde{A}\Tilde{D}^{-\frac{1}{2}}
+\tilde{L}=\tilde{D}^{-\frac{1}{2}}L\tilde{D}^{-\frac{1}{2}}= I-\tilde{D}^{-\frac{1}{2}}\tilde{A}\tilde{D}^{-\frac{1}{2}}
 ```
 <!-- TOC --><a name="52-gat-lstm"></a>
 ###  5.2. <a name='GAT-LSTM'></a>GAT-LSTM
