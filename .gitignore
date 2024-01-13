@@ -8,6 +8,7 @@
 /notebook/__pycache__/
 /best_models/
 */__pycache__/
+*/.ipynb_checkpoints/
 # cartelle con altri dataset di testing
 /networks/
 /traffic/
