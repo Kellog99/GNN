@@ -10,7 +10,10 @@ setting:
     plot: False
     
 categorical:
-    covid: [21, 112, 4, 12, 31, 7, 2]
+    covid: 
+       past: [21, 112, 4, 12, 31, 7, 2]
+       future: [21, 112, 4, 12, 31, 7, 2]
+       
     telephone: [43, 1, 1, 30, 3, 24]
 
 paths:
