@@ -1,22 +1,23 @@
 # LAZY-TS for graph diffusion
 ## Table of content
 <!-- vscode-markdown-toc -->
-* 1. [Introduction](#Introduction)
-* 2. [Time Series](#TimeSeries)
+* 1. [ Introduction](#Introduction)
+* 2. [ Time Series](#TimeSeries)
 * 3. [Dataset](#Dataset)
 * 4. [Graph Neural Networks (GNNs) and Diffusion Models Introduction](#GraphNeuralNetworksGNNsandDiffusionModelsIntroduction)
 	* 4.1. [Projection](#Projection)
 	* 4.2. [Models](#Models)
 		* 4.2.1. [GCN](#GCN)
 		* 4.2.2. [GAT-LSTM](#GAT-LSTM)
-* 5. [TO-DO](#TO-DO)
+* 5. [ TO-DO](#TO-DO)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
 	autoSave=true
 	/vscode-markdown-toc-config -->
 <!-- /vscode-markdown-toc -->
-##  1. <a name='Introduction'></a>Introduction 
+
+##  1. <a name='Introduction'></a> Introduction 
 Welcome to this repository! 
 
 This project of mine is centered on exploring the expressivity Graph Neural Networks (GNNs) and their connection with diffusion models on graphs. The goal of this repo is to create a unique library for multi-dimensional (or unidimensional) timeseries regression on static graph. Up to now the model that have been implemented are 
@@ -50,8 +51,7 @@ Moreover, once everything has been computed, the best model is used for plotting
 ![image](/Image/timeseries.png)
 
 
-<!-- TOC --><a name="3-time-series"></a>
-##  2. <a name='TimeSeries'></a>Time Series 
+##  2. <a name='TimeSeries'></a> Time Series 
 
 **Definition [Time Series]**  
 A multivariate timeseries is a finite part of a realization from a stochastic process $`\{X_t,t\in T\}\subset\mathbb{R}^k`$.
@@ -82,7 +82,6 @@ Here it is possible to see an example of graph
 
 The graph it is said to be **static** if the adjacency do not vary in time.
 
-<!-- TOC --><a name="4-data-manipulation"></a>
 ##  3. <a name='Dataset'></a>Dataset
 Now it is possible to describes how a dataset is defined and so how is the input of a model.  
 As it was said at the beginning $x_t$ is a concatenation of numerical an categorical variables. Thus if $x_t\in \mathbb{R}^k$ then the first $m$ variables are those reffering to numerical variables while the last $k-m$ are referring to the categorical variables.  
@@ -145,7 +144,7 @@ Operatively speaking the Dataset class will produce for every `idx`
  xp, xf, adj, y = next(iter(Dataset))
  ```
 ____
-<!-- TOC --><a name="graph-neural-networks-gnns-and-diffusion-models-introduction"></a>
+
 ##  4. <a name='GraphNeuralNetworksGNNsandDiffusionModelsIntroduction'></a>Graph Neural Networks (GNNs) and Diffusion Models Introduction
 
 Every model is composed of 3 main part:
@@ -171,18 +170,15 @@ Before talking about the inner model. It is usefull to talk about how the model 
 **Observation**  
 It is not possible to stack all the vectors into one and then do a forecasting because the size of the graph can change over times. This condition do not violate the assumption of `static graph` because changing the size of a graph do not imply that the adjacency vary over time.
 
-<!-- TOC --><a name="5-models"></a>
 ###  4.2. <a name='Models'></a>Models
 In this part it will be described the models that have been implemented for embedding the information of the graph in each time-step.
 
-<!-- TOC --><a name="51-gcn"></a>
 ####  4.2.1. <a name='GCN'></a>GCN
 The Graph Convolutional neural network use the augmented laplacian in order to do the convolution 
 Let $G=(V, E)$ be a graph and denote $D, A$ respectively the degree and the adjacency matrix of $G$. Then the augmented Laplacian matrix is 
 ```math
 \tilde{L}=\tilde{D}^{-\frac{1}{2}}L\tilde{D}^{-\frac{1}{2}}= I-\tilde{D}^{-\frac{1}{2}}\tilde{A}\tilde{D}^{-\frac{1}{2}}
 ```
-<!-- TOC --><a name="52-gat-lstm"></a>
 ####  4.2.2. <a name='GAT-LSTM'></a>GAT-LSTM
 This architecture is based on the concept of GAT (Graph attention network) for embedding the features of the nodes and then using an LSTM for generating the stream of data.
 
@@ -209,8 +205,7 @@ z = z_1.repeat(1,n)+(z_2.repeat(1,n))^T
 ```
 This produce the same exponent of the GAT's attention mechanism which is then normalized with a `softmax` operation.
 
-<!-- TOC --><a name="to-do"></a>
-##  5. <a name='TO-DO'></a>TO-DO
+##  5. <a name='TO-DO'></a> TO-DO
 1. The global configuration file should contains all the paths to the local configuration file 
    1. Should it be a whole folder by itself that contains all the files ore one in each directory?
 2. `PytorchLightning`
