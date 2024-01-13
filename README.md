@@ -101,15 +101,31 @@ class dataset(Dataset):
         self.past_step = past_step
         self.future_step = future_step
 ```
-Let $p$ be the past steps to be consider and $m$ the future steps. $\forall t\in T$, the input of the models is composed of 
+Let $G=(V,E)$ the graph that needs to be studied and $p$ be the past steps and $m$ the future steps. $\forall t\in T$, the input of the models is composed of 
 * **the past information**: a 3D-tensor (4D-tensor if it is consider the batch input), where $\forall k\in [0, \cdots, p-1]$
 ```math
 \mathbb{X}_{t-k}^p=\begin{bmatrix}X_{t-k,1}\\ \vdots\\ X_{t-k,|V|}\end{bmatrix}
 ```
 * **the future information** (the predictable process): a 3D-tensor where $\forall k\in [1, \cdots, f]$
 ```math
-\mathbb{X}_{t-k}^p=\begin{bmatrix}X_{t-k,1}\\ \vdots\\X_{t-k,|V|}\end{bmatrix}
+\mathbb{X}_{t-k}^f=\begin{bmatrix}X_{t+k,1}\\ \vdots\\X_{t+k,|V|}\end{bmatrix}
 ```
+Clearly the dimensionality of the features in each node in the future is less or equal the the dimensionality in the past.
+* **Adjacency** : the adjacency matrix that describes the connection among the graph. Here below there is an example of adjacency matrix referring to the previous graph:
+```math 
+A = \begin{bmatrix}0&1&1&1&1&0&0&0&1\\
+1&0&1&0&0&0&0&0&0\\
+1&1&0&0&0&0&0&0&0\\
+1&0&0&0&1&1&0&1&0\\
+1&0&0&1&0&0&0&0&0\\
+0&0&0&1&0&0&1&0&0\\
+0&0&0&0&0&1&0&1&0\\
+0&0&0&1&0&0&1&0&0\\
+1&0&0&0&0&0&0&0&0\\
+\end{bmatrix}
+```
+
+
 ____
 <!-- TOC --><a name="graph-neural-networks-gnns-and-diffusion-models-introduction"></a>
 # Graph Neural Networks (GNNs) and Diffusion Models Introduction
