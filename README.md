@@ -16,9 +16,6 @@
 	autoSave=true
 	/vscode-markdown-toc-config -->
 <!-- /vscode-markdown-toc -->
-
-
-<!-- TOC --><a name="2-introduction"></a>
 ##  1. <a name='Introduction'></a>Introduction 
 Welcome to this repository! 
 
