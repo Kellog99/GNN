@@ -40,7 +40,7 @@ Moreover, once everything has been computed, the best model is used for plotting
 ##  3. <a name='Timeseries'></a>Time Series 
 
 **Definition [Time Series]**  
-A multivariate timeseries is a finite part of a realization from a stochastic process $\{X_t,t\in T\}\subset\mathbb{R}^k$.
+A multivariate timeseries is a finite part of a realization from a stochastic process $`\{X_t,t\in T\}\subset\mathbb{R}^k`$.
 
 
 As it was said in the definition $X_t\in \mathbb{R}^k$ but it is a result of a concatenation of 2 types of variables:
@@ -144,9 +144,22 @@ Every model is composed of 3 main part:
 
 
 ## Projection
-Before talking about the inner model. It is usefull to talk about how the model forecast the values.
+Before talking about the inner model. It is usefull to talk about how the model forecast the values. There are 2 main approaches:
+* _Sequence to vector_   
+  The embedding of the graph on the past is sequenced with a model (LSTM, RNN...) and then the last values is decoded to produce the desired output. Here below there is a graphic representation of what it has been said here
+
+  ![image](Image/seq2vec.png)   
+* _Sequence to sequence_   
+  The embedding of the graph on the past is sequenced with a model (LSTM, RNN...) and then the last value is passed to another model that use the future information to produce similarly as before a forecasting. Here below there is a graphic representation of what it has been said here
+
+  ![image](Image/seq2seq.png)   
+
+**Observation**  
+It is not possible to stack all the vectors into one and then do a forecasting because the size of the graph can change over times. This condition do not violate the assumption of `static graph` because changing the size of a graph do not imply that the adjacency vary over time.
+
 <!-- TOC --><a name="5-models"></a>
 ##  5. <a name='Models'></a>Models
+In this part it will be described the models that have been implemented for embedding the information of the graph in each time-step.
 
 <!-- TOC --><a name="51-gcn"></a>
 ###  5.1. <a name='GCN'></a>GCN
