@@ -1,38 +1,27 @@
 # LAZY-TS for graph diffusion
-<!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
-- [LAZY-TS for graph diffusion](#lazy-ts-for-graph-diffusion)
-  - [1. Introduction](#1-introduction)
-  - [3. ](#3-)
-  - [4. Data Manipulation](#4-data-manipulation)
-- [Graph Neural Networks (GNNs) and Diffusion Models Introduction](#graph-neural-networks-gnns-and-diffusion-models-introduction)
-  - [5. Models](#5-models)
-    - [5.1. GCN](#51-gcn)
-    - [5.2. GAT-LSTM](#52-gat-lstm)
-- [TO-DO](#to-do)
-
-<!-- TOC end -->
 
 
 <!-- TOC --><a name="2-introduction"></a>
 ##  1. <a name='Introduction'></a>Introduction 
-Welcome to the repository! This project of mine is centered on exploring the expressivity Graph Neural Networks (GNNs) and their connection with diffusion models on graphs. 
-The idea of this repo is to have a unique library for multi multi-dimensional (or even unidimensional, i.e. autoregressive) timeseries regression. Up to now the model that have been implemented are 
+Welcome to this repository! 
+
+This project of mine is centered on exploring the expressivity Graph Neural Networks (GNNs) and their connection with diffusion models on graphs. The goal of this repo is to create a unique library for multi-dimensional (or unidimensional) timeseries regression on static graph. Up to now the model that have been implemented are 
 * GLSTM one shot prediction
 * GLSTM seq2seq prediction
+* GCN_LSTM
 * GAT-LSTM one shot prediction
 * GAT-LSTM seq2seq
 
 Future release will have
-* GCLSTM one shot prediction with Graph Convolutional network
 * GCLSTM seq2seq prediction
 * ARIMA
 * ARMA
 
-After that all the models have been executed, it is printed the results of the training showing the ranking list of the models.
+Once a certain dataset is given and all the models have been executed, the ranking list is shown.
 
-The order is given by the loss function given in the begining to the model since is the one that is shared among all the models. This is important to say because there can be models that require additional terms to the loss in order to work, like the VAE use the KL divergence.
+The order is given by the loss function defined at the begining because is the one that is shared among all the models. This is important to say because there can be models that require additional terms to the loss in order to work, like KL divergence for the VAE model.
 
-Here there are the results of this procedure for the telephone dataset:
+Here there is shown a toy example of how the ranking list could be:
 
 |model|score|
 |----|----|
@@ -42,56 +31,85 @@ Here there are the results of this procedure for the telephone dataset:
 |GAT_LSTM|5443.055419921875|
 |GCN_LSTM|5471.723876953125|
 
-Once everything has been computed, with the best model it is plotted the whole time series
+Moreover, once everything has been computed, the best model is used for plotting the whole time series with a comparison between real and approximation values:
+
+![image](/Image/timeseries.png)
+
 
 <!-- TOC --><a name="3-time-series"></a>
-##  3. <a name='Timeseries'></a>
+##  3. <a name='Timeseries'></a>Time Series 
 
-**Definition**   
-A multivariate timeseries is a finite part of a realization from a stochastic process $\{X_t,t\in T\}$ in $\mathbb{R}^k$, i.e. $\{X_t,t\in T_0\}\subseteq\mathbb{R}^k$ with $T_0\subset T$
+**Definition [Time Series]**  
+A multivariate timeseries is a finite part of a realization from a stochastic process $\{X_t,t\in T\}\subset\mathbb{R}^k$.
 
 
-In this case $\mathbb{R}^k$ is the result of a concatenation of 2 space:
+As it was said in the definition $X_t\in \mathbb{R}^k$ but it is a result of a concatenation of 2 types of variables:
 
 1. $\mathcal{C} \subset \mathbf{N}^c$ the set of categorical variables.
 2. $\mathcal{W} \subset \mathbf{R}^{k-c}$ the set of numerical variables
 
 For this reason it is possible to write $\forall t\in T_0, 
-X_t=c_tw_t$ with $c_t\in\mathcal{C}, w_t\in \mathcal{W}$
-where $c_tw_t$ means concatenation.
+X_t = (c_t|w_t)$ where $c_t\in\mathcal{C}, w_t\in \mathcal{W}$.
 
 ***   
 **Important**  
-We assume that the categorical variables are always known, i.e. $\mathcal{C}$ is known $\forall t$.  
-
+For simplicity, it is assumed that the categorical variables are always known, i.e. $\{w_t\}_{t\in T}$ is a predictable process.  
 ***   
+Since this library talks about graph it is important to give a formal definition of graph.
 
-Let $t\in T$ then it is possible to define the following spaces: 
+**Definition [Graph]**   
+A graph is a pair $G = (V, E)$, where $V$ is the set of the elements of the graph and $E$ is a set of edges, i.e. let $v,u\in V$ then if $v$ is connected with $u$ then $(v,u)\in E$. Moreover, let $u\in V$, the set of neighbours of $u$ is defined as
+```math
+N(u):=\{v\in V|(u,v)\in E\}
+```
+Here it is possible to see an example of graph
 
-  * $\mathcal{F}\subset\mathbf{R}^{f}$: the set of all the variables that are always available.
-  * $\mathcal{P}\subset\mathbf{R}^{p}$: the set of variables known up to time $t$,  
-* $\mathcal{T}\subset\mathcal{P}\subset\mathbf{R}^{s}$: the set of target variables. 
+![image](Image/graph.png)
 
-**Observation**  
-$\mathcal{F},\mathcal{P}$ are the result of a concatenation with $\mathcal{C}$ since it is always known.
-Moreover $\mathcal{P}$ contains the variables of $\mathcal{T}$.
+The graph it is said to be **static** if the adjacency do not vary in time.
 
 <!-- TOC --><a name="4-data-manipulation"></a>
-##  4. <a name='DataManipulation'></a>Data Manipulation
-Unlike a classical time series, this type of dataset contains for each timestep as many multidimensional vectors as there are nodes in the graph. The features of each node for each step in the past are equal.
+##  4. <a name='Dataset'></a>Dataset
+Now it is possible to describes how a dataset is defined and so how is the input of a model.  
+As it was said at the beginning $x_t$ is a concatenation of numerical an categorical variables. Thus if $x_t\in \mathbb{R}^k$ then the first $m$ variables are those reffering to numerical variables while the last $k-m$ are referring to the categorical variables.  
 
-At the moment I assume that the variables associated with the nodes regarding the future are only categorical: date and node name.
+Given a dataset `df` the important variables for creating the dataset are:
+* `past_step` : number of step to look in the past.
+* `future_step`: number of step to look in the future.
+* `past_variable`: a list of all the variables that need to be taken from the dataset corresponding to the past
+* `future_variable`: a list of all the variables that need to be taken from the dataset corresponding to the past
+* `y`: list of numerical variables that need to be predicted
+* `adj`: the adjacency matrix of the graph.
+* `nodes`: number of nodes of the graph
 
-the variables of a node are of two types 
-1. numeric
-2. categorical 
-
-The numeric variables include the study target variable `y` while the last k columns of the dataset are associated with the k categorical variables associated with the nodes
-
-____
-|y|number|date|hour|id_workstation | number|
-|----|----|----|----|----|----|
-11.2|23|2023-09-09 |18|1027|50
+```
+class dataset(Dataset):
+    
+    def __init__(self, 
+                 df: pandas.Dataframe,
+                 past_step:int, 
+                 future_step:int, 
+                 past_variables: list, 
+                 y:list,
+                 adj: np.array,
+                 nodes: int, 
+                 timedelta:str = 'D',
+                 col_data: str = "data"):
+        self.x = []
+        self.y = []
+        self.adj = adj
+        self.past_step = past_step
+        self.future_step = future_step
+```
+Let $p$ be the past steps to be consider and $m$ the future steps. $\forall t\in T$, the input of the models is composed of 
+* **the past information**: a 3D-tensor (4D-tensor if it is consider the batch input), where $\forall k\in [0, \cdots, p-1]$
+```math
+\mathbb{X}_{t-k}^p=\begin{bmatrix}X_{t-k,1}\\ \vdots\\ X_{t-k,|V|}\end{bmatrix}
+```
+* **the future information** (the predictable process): a 3D-tensor where $\forall k\in [1, \cdots, f]$
+```math
+\mathbb{X}_{t-k}^p=\begin{bmatrix}X_{t-k,1}\\ \vdots\\X_{t-k,|V|}\end{bmatrix}
+```
 ____
 <!-- TOC --><a name="graph-neural-networks-gnns-and-diffusion-models-introduction"></a>
 # Graph Neural Networks (GNNs) and Diffusion Models Introduction
@@ -101,11 +119,9 @@ ____
 <!-- TOC --><a name="51-gcn"></a>
 ###  5.1. <a name='GCN'></a>GCN
 The Graph Convolutional neural network use the augmented laplacian in order to do the convolution 
-```math
 Let $G=(V, E)$ be a graph and denote $D, A$ respectively the degree and the adjacency matrix of $G$. Then the augmented Laplacian matrix is 
-    \[
+```math
     \Tilde{L}=\Tilde{D}^{-\frac{1}{2}}L\Tilde{D}^{-\frac{1}{2}}= I-\Tilde{D}^{-\frac{1}{2}}\Tilde{A}\Tilde{D}^{-\frac{1}{2}}
-    \]
 ```
 <!-- TOC --><a name="52-gat-lstm"></a>
 ###  5.2. <a name='GAT-LSTM'></a>GAT-LSTM
