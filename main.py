@@ -35,7 +35,9 @@ def linfty(y, yh, gamma = 1.0, alpha=1e-1, beta=1e-0):
 if __name__ == "__main__":
     with open("./config_env.yaml", 'r') as f:
         config = yaml.safe_load(f)
-
+    txt = f" tesing on {config['setting']['dataset']} "
+    x = txt.center(80, "#")
+    print(x) 
     ############### LOSS FUNCTION ######################
     loss_function = partial(linfty, alpha = float(config['setting']['alpha']))
     ####################################################
@@ -46,7 +48,7 @@ if __name__ == "__main__":
 
     scores = {}
     print(os.listdir(config['paths']['list_models']))
-    for model in os.listdir(config['paths']['list_models']):
+    for model in ['GCN_LSTM','GLSTM', 'GLSTMseq2seq',  'GAT_LSTMseq2seq', 'GAT_LSTM']:#os.listdir(config['paths']['list_models']):
         # mi inserisco all'interno del folder di ciascun modello
         ################## IMPORTING THE FUNCTION ####################
         file_path = os.path.join(config['paths']['list_models'], model, 'main.py')
