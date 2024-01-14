@@ -12,18 +12,21 @@ class dataset(Dataset):
                  past_step:int, 
                  future_step:int, 
                  timedelta:str,
+                 categorical_variables: list, 
                  col_data: str = "data"):
         """
         Arguments:
-            df (pandas.Dataframe): Path to the csv file with annotations.
-            adj : adjacency matrix
-            nodes : number of nodes
-            past_step (int): previous step to look back
-            future_step (int): future step to look for
-            col_data (str): it indicate the columns that gives the indication about the time
+            past_step: number of step to look in the past.
+            future_step: number of step to look in the future.
+            past_variable: a list of all the variables that need to be taken from the dataset corresponding to the past
+            future_variable: a list of all the variables that need to be taken from the dataset corresponding to the past
+            y: list of numerical variables that need to be predicted
+            adj: the adjacency matrix of the graph.
+            nodes: number of nodes of the graph
         """
 
         self.x = []
+        self.x_fut = []
         self.y = []
         self.adj = adj
         date = df[col_data].unique()
@@ -37,10 +40,11 @@ class dataset(Dataset):
         for i in tqdm(range(start, len(date)-future_step-past_step-1)):
             if date[i+past_step+future_step]-date[i+past_step+future_step-1] == np.timedelta64(1, timedelta): 
                 tmp_x = df[df[col_data].isin(date[i:i+past_step])].drop(columns = col_data).values
-                tmp_y = df[df[col_data].isin(date[i+past_step:i+past_step+future_step])].y.values
-
+                tmp_y = df[df[col_data].isin(date[i+past_step:i+past_step+future_step])]
+                
+                self.x_fut.append(tmp_y[categorical_variables].values.reshape(future_step, nodes, -1))
                 self.x.append(tmp_x.reshape(past_step, nodes, -1))
-                self.y.append(tmp_y.reshape(future_step, -1))
+                self.y.append(tmp_y.y.values.reshape(future_step, -1))
             else:
                 i += past_step+future_step
         
@@ -48,7 +52,4 @@ class dataset(Dataset):
         return len(self.x)
     
     def __getitem__(self, idx):
-        return self.x[idx], self.y[idx], self.adj
-    
-
-    
+        return self.x[idx], self.x_fut[idx], self.y[idx], self.adj

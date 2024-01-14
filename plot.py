@@ -32,10 +32,10 @@ def plot(model,
     model = model.cpu()
     model.device = torch.device('cpu')
     
-    batch_train, y_train, adj_train = next(iter(dl_train))
-    batch_val, y_val, adj_val = next(iter(dl_val))
-    yh_train = model(batch_train.float().to(model.device), adj_train[0].to(model.device)).detach().numpy()
-    yh_val = model(batch_val.float().to(model.device), adj_val[0].to(model.device)).detach().numpy()
+    x_past_train, x_fut_train, y_train, adj_train = next(iter(dl_train))
+    x_past_val, x_fut_val, y_val, adj_val = next(iter(dl_val))
+    yh_train = model(x_past_train.float().to(model.device), x_fut_train.float().to(model.device), adj_train[0].to(model.device)).detach().numpy()
+    yh_val = model(x_past_val.float().to(model.device), x_fut_val.float().to(model.device), adj_val[0].to(model.device)).detach().numpy()
 
     fig, ax = plt.subplots(nrows = y_val.shape[1], 
                            ncols = 2, 
@@ -55,7 +55,7 @@ def plot(model,
         ax[day, 1].title.set_text(f"day {day +1} validation")
     fig.suptitle(' Comparison between estimation and reality ', fontsize=20) 
     
-    path = os.path.join(config['paths']['fig'],config['setting']['dataset'], f"{name}.png")
+    path = os.path.join(config['paths']['fig'], config['setting']['dataset'], f"{name}.png")
     plt.savefig(path)
     if show:
         plt.show()

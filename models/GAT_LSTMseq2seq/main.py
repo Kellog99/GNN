@@ -32,18 +32,22 @@ def get_model(df_train : dataset,
     ############### Dataloader #####################
     dl_train = DataLoader(dataset = df_train, batch_size = batch_size, shuffle = True)
     dl_val = DataLoader(dataset = df_val, batch_size = batch_size, shuffle = True)
-    batch, _, _ = next(iter(dl_train))
-    in_feat = batch.shape[-1]
-    print(batch.shape)
+    x_past, x_fut, y, adj = next(iter(dl_train))
+    config['setting']['in_feat_past'] = x_past.shape[-1]
+    config['setting']['in_feat_future'] = x_fut.shape[-1]
+    print(x_past.shape)
+    print(x_fut.shape)
     ################################################
 
     ################ Model #########################
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = GAT_LSTMseq2seq(in_feat = in_feat, 
-                            past = past_step,
-                            future = future_step,
-                            categorical = config['categorical'][config['setting']['dataset']],
-                            device = device).to(device)
+    model = GAT_LSTMseq2seq(in_feat_past = config['setting']['in_feat_past'],
+                 in_feat_fut = config['setting']['in_feat_future'],
+                 past = past_step,
+                 future = future_step,
+                 categorical_past = config['categorical'][config['setting']['dataset']]['past'],
+                 categorical_future = config['categorical'][config['setting']['dataset']]['future'],
+                 device = device).to(device)
         
     optimizer = optim.Adam(model.parameters(), 
                            lr = float(config['setting']['lr']), 

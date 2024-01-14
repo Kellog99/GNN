@@ -61,7 +61,7 @@ class Trainer():
                 if (self.loss_val[-1]<be) & (epoch/epochs>0.15):
                     be = self.loss_val[-1]
                     bm = self.model
-                if (epoch+1)%30 == 0:
+                if (epoch+1)%1 == 0:
                     print(f"loss train epoch {epoch+1} == {self.loss_train[-1]}")
                     print(f"loss val epoch {epoch+1} == {self.loss_val[-1]}")
             torch.save(bm.state_dict(), self.PATH)
@@ -72,8 +72,8 @@ class Trainer():
         # put model in train mode
         self.model.train()
         loss_epoch  = 0
-        for x, y, adj in iter(loader):
-            yh = self.model(x.to(self.model.device).float(), adj[0].to(self.model.device).float())
+        for x_past, x_fut, y, adj in iter(loader):
+            yh = self.model(x_past.to(self.model.device).float(), x_fut.to(self.model.device).float(), adj[0].to(self.model.device).float())
             loss = self._compute_loss(yh, y.to(self.model.device).float())
     
             # Backward and optimize
@@ -91,8 +91,8 @@ class Trainer():
         self.model.eval()
         loss_epoch  = 0
         with torch.no_grad():
-            for x, y, adj in iter(loader):
-                yh = self.model(x.to(self.model.device).float(), adj[0].to(self.model.device).float())
+           for x_past, x_fut, y, adj in iter(loader):
+                yh = self.model(x_past.to(self.model.device).float(), x_fut.to(self.model.device).float(), adj[0].to(self.model.device).float())
                 loss = self._compute_loss(yh, y.to(self.model.device).float())
                 loss_epoch += loss.item()
         self.loss_val.append(loss_epoch/len(loader))

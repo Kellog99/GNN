@@ -14,7 +14,7 @@ def get_dataloader(config:yaml)-> (dataset, dataset):
     past_step = config['setting']['past_step']
     future_step = config['setting']['future_step']
 
-    with open( os.path.join(config['paths']['data'],config['setting']['dataset'],f"{past_step}_{future_step}.pkl"), 'rb') as f:
+    with open( os.path.join(config['paths']['data'], config['setting']['dataset'],f"{past_step}_{future_step}.pkl"), 'rb') as f:
         dataset = pickle.load(f) 
     
     config['setting']['in_feat'] =  dataset.x[0].shape[-1]
@@ -36,9 +36,14 @@ if __name__ == "__main__":
     with open("./config_env.yaml", 'r') as f:
         config = yaml.safe_load(f)
 
-    #Set the weights of the piece of the loss
+    ############### LOSS FUNCTION ######################
     loss_function = partial(linfty, alpha = float(config['setting']['alpha']))
+    ####################################################
+    
+    ############### DATALOADER #########################
     df_train, df_val = get_dataloader(config = config)
+    ####################################################
+
     scores = {}
     print(os.listdir(config['paths']['list_models']))
     for model in os.listdir(config['paths']['list_models']):
@@ -63,4 +68,4 @@ if __name__ == "__main__":
 
     scores = pd.DataFrame(scores.items(), columns = ['model', 'score'])
     scores.to_csv("./scores.csv")
-    print(scores)
+    print(scores) 
