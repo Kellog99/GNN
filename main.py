@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     scores = {}
     print(os.listdir(config['paths']['list_models']))
-    for model in ['GCN_LSTM','GLSTM', 'GLSTMseq2seq',  'GAT_LSTMseq2seq', 'GAT_LSTM']:#os.listdir(config['paths']['list_models']):
+    for model in ['GCN_LSTM','GLSTM', 'GAT_LSTM']:#os.listdir(config['paths']['list_models']):
         # mi inserisco all'interno del folder di ciascun modello
         ################## IMPORTING THE FUNCTION ####################
         file_path = os.path.join(config['paths']['list_models'], model, 'main.py')
@@ -67,7 +67,12 @@ if __name__ == "__main__":
         # it allows to delete all the objects that were stored into the GPU
         # in this way the memory of the GPU is cleared
         torch.cuda.empty_cache()      
-
+    
     scores = pd.DataFrame(scores.items(), columns = ['model', 'score'])
+    if os.path.exists("./scores.csv"):
+        past_scores = pd.read_csv("./scores.csv", index_col=0)
+        past_scores.score = past_scores.merge(scores, on="model", how= "left").drop(columns = "model").min(axis = 1)
+        scores = past_scores
+        
     scores.to_csv("./scores.csv")
     print(scores) 
