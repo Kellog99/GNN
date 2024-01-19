@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     scores = {}
     print(os.listdir(config['paths']['list_models']))
-    for model in ['GCN_LSTM','GLSTM', 'GAT_LSTM']:#os.listdir(config['paths']['list_models']):
+    for model in ['GAT_LSTMseq2seq', 'GLSTM', 'GLSTMseq2seq', 'GCN_LSTM',  'GAT_LSTM']:#os.listdir(config['paths']['list_models']):
         # mi inserisco all'interno del folder di ciascun modello
         ################## IMPORTING THE FUNCTION ####################
         file_path = os.path.join(config['paths']['list_models'], model, 'main.py')

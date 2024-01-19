@@ -62,18 +62,27 @@ def plot(model,
     plt.close(fig)
 
 def plot_stream(model, 
-                data: pd.DataFrame, 
+                df: pd.DataFrame, 
                 config: yaml, 
+                past_variables:list, 
+                future_variables: list,
                 adj:torch.tensor,
-                n_nodes:int, 
+                nodes:int, 
                 name:str, 
+                node: int = 3, 
                 timedelta: str = 'D'):
+    node = min(node, nodes)-1
     past_step = model.past
     future_step = model.future
-    date = np.sort(data.data.unique())
+    date = np.sort(df.data.unique())
     y = []
     yh = []
     start = 0
+
+    x_past = df.groupby('data').apply(lambda x : np.array(x[past_variables].values))
+    x_fut = df.groupby('data').apply(lambda x : np.array(x[future_variables].values))
+    y_group = df.groupby('data').apply(lambda x : np.array(x['y'].values))
+    print(y_group.shape)
     dt = np.diff(date[:past_step+future_step]) == np.timedelta64(1, timedelta)
     while any(not x for x in dt):
         start +=1
@@ -81,25 +90,30 @@ def plot_stream(model,
     
     for i in tqdm(range(start, len(date)-future_step-past_step-1)):
         if date[i+past_step+future_step]-date[i+past_step+future_step-1] == np.timedelta64(1, timedelta): 
-            x = data[data.data.isin(date[i:i+past_step])].drop(columns = 'data').values
-            x = x.reshape(1, past_step, n_nodes, config['setting']['in_feat'])
-            tmp = data[data.data.isin(date[i+past_step:i+past_step+future_step])].y.values
-            y.append(tmp.reshape(1, future_step, n_nodes))
-            yh.append(F.relu(model(torch.from_numpy(x).to(model.device), adj[0].to(model.device)).detach()).cpu())
+            tmp_x_past = np.stack(x_past[x_past.index.isin(date[i:i+past_step])].values)
+            tmp_x_fut = np.stack(x_fut[x_fut.index.isin(date[i+past_step:i+past_step+future_step])].values)            
+            yh_tmp =model(torch.from_numpy(tmp_x_past).unsqueeze(0).to(model.device), 
+                          torch.from_numpy(tmp_x_fut).unsqueeze(0).to(model.device),
+                          adj.to(model.device)).detach().cpu()
+            yh.append(F.relu(yh_tmp))
+            
+            tmp_y = np.vstack(y_group[y_group.index.isin(date[i+past_step:i+past_step+future_step])].values)
+            y.append([tmp_y])
+        
         else:
              i += past_step+future_step 
-    
-    yh = torch.cat(yh,0)
+
+    yh = torch.cat(yh)
     y = np.vstack(y) 
     f = y.shape[-1]
-    for step in range(model.future):
+    for step in tqdm(range(37, model.future)):
         fig, ax = plt.subplots(nrows = f, 
                                    ncols = 1, 
                                    constrained_layout = True,
                                    figsize = (20,f*3))
     
         for n in range(f):
-            ax[n].plot(y[:,step,n], label = 'real')
+            ax[n].plot(y[:,step, n], label = 'real')
             ax[n].plot(yh[:,step, n], label = 'estimated')
             ax[n].legend()  
 
