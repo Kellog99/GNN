@@ -201,4 +201,4 @@ class GAT_LSTMseq2seq(torch.nn.Module):
             if t >= self.past:
                 out.append(self.decoding(c))
         out = torch.cat(out, -1)
-        return out.transpose(-2,-1)
+        return out

@@ -75,6 +75,7 @@ def compare(config_env:yaml,
                         categorical_past = config['categorical'][config['setting']['dataset']]['past'],
                         categorical_future = config['categorical'][config['setting']['dataset']]['future'],
                         device = device).to(device)
+            model.load_state_dict(torch.load(PATH))
             tmp = step(model = model, 
                        dataloader = dl_test,
                        loss_function = loss_function)

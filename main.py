@@ -2,11 +2,9 @@ import yaml
 import pickle
 import os
 from data import dataset
-import pandas as pd
 import torch
 import torch.nn.functional as F
 import importlib.util as imp
-import argparse
 from functools import partial
 from compare import compare
 
@@ -28,11 +26,16 @@ def get_dataloader(config:yaml)-> (dataset, dataset, dataset):
     return df_train, df_val, df_test
 
 #################### DEFINING THE LOSS FUNCTION #####################
-def linfty(y, yh, gamma = 1.0, alpha=1e-1, beta=1e-0):
-    out = 0.5*F.l1_loss(y,yh, reduction = "mean")
-    out += gamma*F.mse_loss(y,yh, reduction = "mean")
-    out += alpha*torch.max(torch.abs(y-yh))
-    out += beta*(torch.sum(F.relu(-yh)))
+def linfty(y, yh, 
+           alpha:float = 1e-1, 
+           beta:float = 1e-0,
+           gamma:float = 1.0, 
+           delta:float = 1.0):
+    
+    out = alpha*F.l1_loss(y,yh, reduction = "mean")
+    out += beta*F.mse_loss(y,yh, reduction = "mean")
+    out += gamma*torch.max(torch.abs(y-yh))
+    out += delta*(torch.sum(F.relu(-yh)))
     return out
 
 #################### MAIN FUNCTION #####################
@@ -45,7 +48,11 @@ if __name__ == "__main__":
     print(x) 
 
     ############### LOSS FUNCTION ######################
-    loss_function = partial(linfty, alpha = float(config['setting']['alpha']))
+    loss_function = partial(linfty, 
+                            alpha = float(config['loss_function']['alpha']),
+                            beta = float(config['loss_function']['beta']),
+                            gamma = float(config['loss_function']['gamma']),
+                            delta = float(config['loss_function']['delta']))
     ####################################################
     
     ############### DATALOADER #########################

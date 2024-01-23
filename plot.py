@@ -16,7 +16,8 @@ def plot(model,
          name:str,
          dl_train: DataLoader,
          dl_val: DataLoader, 
-         show = False):
+         show = False, 
+         n_nodes:int=30):
 
     fig = px.line({"epochs": range(1,len(loss_training)+1), 
                                    "train": loss_training, 
@@ -37,12 +38,13 @@ def plot(model,
     yh_train = model(x_past_train.float().to(model.device), x_fut_train.float().to(model.device), adj_train[0].to(model.device)).detach().numpy()
     yh_val = model(x_past_val.float().to(model.device), x_fut_val.float().to(model.device), adj_val[0].to(model.device)).detach().numpy()
 
-    fig, ax = plt.subplots(nrows = y_val.shape[1], 
+    n_nodes = min(y_val.shape[1], n_nodes)
+    fig, ax = plt.subplots(nrows = n_nodes, 
                            ncols = 2, 
                            constrained_layout = True,
-                           figsize = (20, 3*y_val.shape[1]))
+                           figsize = (20, 3*n_nodes))
     
-    for day in range(y_val.shape[1]):
+    for day in range(n_nodes):
         ax[day, 0].plot(yh_train[0,day], label = "estimate")
         ax[day, 0].plot(y_train[0,day], label ="real")
     
@@ -51,8 +53,8 @@ def plot(model,
         ax[day, 0].legend()
         ax[day, 1].legend()
     
-        ax[day, 0].title.set_text(f"day {day +1} train")
-        ax[day, 1].title.set_text(f"day {day +1} validation")
+        ax[day, 0].title.set_text(f"node {day +1} train")
+        ax[day, 1].title.set_text(f"node {day +1} validation")
     fig.suptitle(' Comparison between estimation and reality ', fontsize=20) 
     
     path = os.path.join(config['paths']['fig'], config['setting']['dataset'], f"{name}.png")
