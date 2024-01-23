@@ -6,6 +6,8 @@ from functools import partial
 import argparse
 from main import linfty, get_dataloader
 import pandas as pd
+from data import dataset
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Get main variables')
     parser.add_argument('--config', type=str,
@@ -27,7 +29,7 @@ if __name__ == "__main__":
 
     print("the model that has been chosen is ", models[input1][3:-1])
     model = models[input1][3:-1]
-    for d in np.linspace(start = 0.1, stop = 1, num = 3):
+    for d in np.linspace(start = 0.0, stop = 0.9, num = 10):
         config['setting']['dropout'] = d
         file_path = os.path.join(config['paths']['list_models'], model, 'main.py')
         print(file_path)

@@ -120,7 +120,6 @@ class GCN_LSTM(torch.nn.Module):
                  hidden_propagation:int = 128):
         
         super(GCN_LSTM, self).__init__()
-        print("GCN_LSTM")
         self.in_feat_past = in_feat_past         # numero di features di ogni nodo prima del primo GCN        
         self.in_feat_past = in_feat_fut
         self.past = past 

@@ -33,18 +33,21 @@ class pre_processing(torch.nn.Module):
     def forward(self, x):  
         return self.linear(x.float())
 
-class my_gat(torch.nn.Module):
+class my_gcnn(torch.nn.Module):
 
     def __init__(self, 
                  in_channels: int, 
-                 out_channels: int):
-        super(my_gat, self).__init__()
+                 out_channels: int,
+                 dim_hidden_emb:int = 128):
+        super(my_gcnn, self).__init__()
 
         self.in_channels = in_channels
-        self.a1 = nn.Parameter(torch.randn(out_channels))
-        self.a2 = nn.Parameter(torch.randn(out_channels))
+        self.out_channels = out_channels
+        self.lin = nn.Linear(in_channels, 
+                             out_channels, 
+                             bias = False)
         self.emb = nn.Linear(in_features = in_channels, 
-                             out_features = out_channels, 
+                             out_features = dim_hidden_emb, 
                              bias = False)
         
 
@@ -53,16 +56,14 @@ class my_gat(torch.nn.Module):
         
         x, A = x0   
         x_emb = self.emb(x)
-        _, _, N, _ = x_emb.shape
-        ## <a,(h_i||h_j)>
-        top = torch.einsum('bsnj,j->bsn', x_emb, self.a1)
-        bot = torch.einsum('bsnj,j->bsn', x_emb, self.a2)
-        z = F.leaky_relu(top.unsqueeze(-1)+bot.unsqueeze(-1).transpose(-2,-1))
+        pi = torch.einsum('bdjk,bdik->bdij', x_emb, x_emb)
 
         # Apply the mask to fill values in the input tensor
         # sigmoid(Pi*X*W)
-        pi = F.softmax(z.masked_fill(A == 0., -float('infinity')), -1)
-        x = F.sigmoid(torch.einsum('bpik,bpkj->bpij', pi, x_emb))        
+        pi = F.softmax(pi.masked_fill(A == 0., -float('infinity')), -1)
+        x = torch.einsum('bpik,bpkj->bpij', pi, x)
+        x = F.sigmoid(self.lin(x))
+        
         return (x, A)
 
 class LSTMCell(nn.Module):
@@ -97,7 +98,7 @@ class LSTMCell(nn.Module):
         return h, c
         
         
-class GAT_LSTMseq2seq(torch.nn.Module):
+class GLSTMseq2seq(torch.nn.Module):
     def __init__(self, 
                  in_feat_past:int, 
                  in_feat_fut:int, 
@@ -118,7 +119,7 @@ class GAT_LSTMseq2seq(torch.nn.Module):
                  hidden_lstm: int = 128, 
                  hidden_propagation:int = 128):
         
-        super(GAT_LSTMseq2seq, self).__init__()
+        super(GLSTMseq2seq, self).__init__()
         
         self.in_feat_past = in_feat_past         # numero di features di ogni nodo prima del primo GAT        
         self.in_feat_past = in_feat_fut
@@ -150,14 +151,14 @@ class GAT_LSTMseq2seq(torch.nn.Module):
         ##### past
         layers = []
         for i in range(num_layer_gnn_past):
-            layers.append(my_gat(in_channels = out_preprocess if i == 0 else hidden_gnn, 
+            layers.append(my_gcnn(in_channels = out_preprocess if i == 0 else hidden_gnn, 
                                  out_channels = out_gnn if i == num_layer_gnn_past-1 else hidden_gnn))            
         self.gnn_past = nn.Sequential(*layers)
 
         ##### future
         layers = []
         for i in range(num_layer_gnn_future):
-            layers.append(my_gat(in_channels = out_preprocess if i == 0 else hidden_gnn, 
+            layers.append(my_gcnn(in_channels = out_preprocess if i == 0 else hidden_gnn, 
                                  out_channels = out_gnn if i == num_layer_gnn_future-1 else hidden_gnn))            
         self.gnn_future = nn.Sequential(*layers)
 

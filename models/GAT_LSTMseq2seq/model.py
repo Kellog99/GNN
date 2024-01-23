@@ -130,7 +130,6 @@ class GAT_LSTMseq2seq(torch.nn.Module):
         self.categorical_past = categorical_past
         self.categorical_fut = categorical_future
         
-        
         ########## PREPROCESSING PART #############        
         self.embedding_past = embedding_layer(categorical = categorical_past,
                                             dim_categorical = dim_categorical_past)

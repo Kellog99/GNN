@@ -12,7 +12,7 @@ def get_model(df_train : dataset,
                        df_val : dataset, 
                        config_env: yaml, 
                        loss_function: callable):
-    id_model = "GLSTM-seq2seq"
+    id_model = config_env['setting']['name_model']
     with open(os.path.join(config_env['paths']['config'], f"{id_model}.yaml"), 'r') as f:
         config = yaml.safe_load(f)
         
@@ -30,24 +30,20 @@ def get_model(df_train : dataset,
     id_test = f"{id_model}_{past_step}_{future_step}"
     ################################################
 
+
     ############### Dataloader #####################
     dl_train = DataLoader(dataset = df_train, batch_size = batch_size, shuffle = True)
     dl_val = DataLoader(dataset = df_val, batch_size = batch_size, shuffle = True)
-    x_past, x_fut, y, adj = next(iter(dl_train))
-    config['setting']['in_feat_past'] = x_past.shape[-1]
-    config['setting']['in_feat_future'] = x_fut.shape[-1]
-    print(x_past.shape)
-    print(x_fut.shape)
     ################################################
     
     
     ################ Model #########################
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(config['model']['dropout'])
-    model = GLSTMseq2seq(in_feat_past = config['setting']['in_feat_past'],
-                        in_feat_fut = config['setting']['in_feat_future'],
+    model = GLSTMseq2seq(in_feat_past = config['dataset']['in_feat_past'],
+                        in_feat_fut = config['dataset']['in_feat_future'],
                         past = past_step,
                         future = future_step,
+                        dropout = config['model']['dropout'],
                         categorical_past = config['categorical'][config['setting']['dataset']]['past'],
                         categorical_future = config['categorical'][config['setting']['dataset']]['future'],
                         device = device).to(device)
