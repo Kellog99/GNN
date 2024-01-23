@@ -70,10 +70,6 @@ if __name__ == "__main__":
                                 df_val = df_val, 
                                 config_env = config,
                                 loss_function = loss_function)
-            #scores[f"{model}"]['validation'] = be
-
-            # it allows to delete all the objects that were stored into the GPU
-            # in this way the memory of the GPU is cleared
             torch.cuda.empty_cache()  
 
     txt = f" comparing the results "

@@ -202,5 +202,5 @@ class GCN_LSTM(torch.nn.Module):
             h, c = self.lstm(x_lstm[:, t], (h, c)) 
         x_fut = x_fut.transpose(1,2).flatten(-2)
         tmp = torch.concat((h, x_fut),-1)
-        out = self.decoding(tmp).transpose(-2,-1)
+        out = self.decoding(tmp)
         return  out
