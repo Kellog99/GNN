@@ -11,6 +11,7 @@ from tqdm import tqdm
 def step(model, 
          dataloader: DataLoader, 
          loss_function: callable)-> float:
+    
     # put model in evaluation mode
     model.eval()
     loss_step = 0
@@ -22,6 +23,63 @@ def step(model,
     loss_step = loss_step/len(dataloader)
     return loss_step
 
+
+def get_metric(config_env: yaml, 
+               PATH:str, 
+               ds: dataset, 
+               loss_function: callable):
+    '''
+    config_env (yaml): is the global configuration file
+    PATH (str): is the path to the saved model
+    ds (dataset): test dataset on which all the models are tested
+    loss_function: global loss function on which testing the models
+    '''
+    name = config_env['setting']['name_model']
+
+    ############### CARICO LA RELATIVA CLASSE ######################
+    file_path = os.path.join(config_env['paths']['list_models'], name, 'model.py')
+    # Create a module spec
+    spec = imp.spec_from_file_location('model.py', file_path)
+    # Import the module
+    module = imp.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    ############### INSTANZIO LA CLASSE ######################
+    model = getattr(module, name)
+    
+
+    ######################
+    id_model = name
+    with open(os.path.join(config_env['paths']['config'], f"{id_model}.yaml"), 'r') as f:
+        config = yaml.safe_load(f)
+    config.update(config_env)
+    if 'dropout' in config_env['setting'].keys():
+        config['model']['dropout'] = config_env['setting']['dropout']
+
+    ############### Dataloader #####################
+    dl_test = DataLoader(dataset = ds, 
+                         batch_size = config['training']['batch_size'], 
+                         shuffle = True)
+    ################################################
+
+    ################ Model #########################
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model(in_feat_past = config['dataset']['in_feat_past'],
+                in_feat_fut = config['dataset']['in_feat_future'],
+                past = config['setting']['past_step'],
+                future = config['setting']['future_step'],
+                dropout = config['model']['dropout'],
+                categorical_past = config['categorical'][config['setting']['dataset']]['past'],
+                categorical_future = config['categorical'][config['setting']['dataset']]['future'],
+                device = device).to(device)
+    
+    model.load_state_dict(torch.load(PATH))
+    tmp = step(model = model, 
+                dataloader = dl_test,
+                loss_function = loss_function)
+    return tmp
+
+
 def compare(config_env:yaml, 
             ds: dataset, 
             loss_function:callable = nn.L1Loss(reduction="mean")):
@@ -32,54 +90,16 @@ def compare(config_env:yaml,
     loss = {}
     for name in os.listdir(config_env['paths']['list_models']):
         tmp = f"{name}_{past_step}_{future_step}.pt"
+        config_env['setting']['name_model']= name
         PATH = os.path.join(config_env['paths']['models'], tmp)
         if os.path.exists(PATH):
-            ############### CARICO LA RELATIVA CLASSE ######################
-            file_path = os.path.join(config_env['paths']['list_models'], name, 'model.py')
-            # Create a module spec
-            spec = imp.spec_from_file_location('model.py', file_path)
-            # Import the module
-            module = imp.module_from_spec(spec)
-            spec.loader.exec_module(module)
-
-            ############### INSTANZIO LA CLASSE ######################
-            model = getattr(module, name)
-            
-
-            ######################
-            id_model = name
-            with open(os.path.join(config_env['paths']['config'], f"{id_model}.yaml"), 'r') as f:
-                config = yaml.safe_load(f)
-            config.update(config_env)
-            if 'dropout' in config_env['setting'].keys():
-                config['model']['dropout'] = config_env['setting']['dropout']
-            
-
-            ############### Characterization ###############
-            batch_size= config['training']['batch_size']
-            past_step = config['setting']['past_step']
-            future_step = config['setting']['future_step']
-            ################################################
-
-            ############### Dataloader #####################
-            dl_test = DataLoader(dataset = ds, batch_size = batch_size, shuffle = True)
-            ################################################
-
-            ################ Model #########################
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            model = model(in_feat_past = config['dataset']['in_feat_past'],
-                        in_feat_fut = config['dataset']['in_feat_future'],
-                        past = past_step,
-                        future = future_step,
-                        dropout = config['model']['dropout'],
-                        categorical_past = config['categorical'][config['setting']['dataset']]['past'],
-                        categorical_future = config['categorical'][config['setting']['dataset']]['future'],
-                        device = device).to(device)
-            model.load_state_dict(torch.load(PATH))
-            tmp = step(model = model, 
-                       dataloader = dl_test,
-                       loss_function = loss_function)
+            tmp = get_metric(config_env=config_env, 
+                             PATH=PATH, 
+                             ds=ds, 
+                             loss_function=loss_function)
             loss[name] = tmp
+            torch.cuda.empty_cache()
+
     loss = pd.DataFrame(loss.items(), columns = ['model', 'score']).sort_values(by = 'score').reset_index(drop = True)
     loss['past_step']= past_step
     loss['future_step']= future_step
