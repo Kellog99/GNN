@@ -59,7 +59,9 @@ if __name__ == "__main__":
     df_train, df_val, df_test = get_dataloader(config = config)
     ####################################################
     if bool(config['setting']['train']):
-        for model in [ 'GCN_LSTM',  'GAT_LSTM', 'GAT_LSTMseq2seq', 'GLSTM', 'GLSTMseq2seq']:#os.listdir(config['paths']['list_models']):
+        print("models to be tested:")
+        print('\n'.join([ f"* {x}" for x in os.listdir(config['paths']['list_models'])]))
+        for model in os.listdir(config['paths']['list_models']):
             txt = f" {model} ".center(40, "#")
             print(txt) 
 
