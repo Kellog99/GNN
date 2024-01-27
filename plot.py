@@ -30,13 +30,17 @@ def plot(model,
     fig.write_html(os.path.join(config['paths']['fig'], config['setting']['dataset'], f"loss_gnn_{name}.html"))
     if show:
         fig.show()
+
     model = model.cpu()
-    model.device = torch.device('cpu')
+    device = torch.device('cpu')
+    torch.cuda.empty_cache()
     
     x_past_train, x_fut_train, y_train, adj_train = next(iter(dl_train))
     x_past_val, x_fut_val, y_val, adj_val = next(iter(dl_val))
-    yh_train = model(x_past_train.float().to(model.device), x_fut_train.float().to(model.device), adj_train[0].to(model.device)).detach().numpy()
-    yh_val = model(x_past_val.float().to(model.device), x_fut_val.float().to(model.device), adj_val[0].to(model.device)).detach().numpy()
+    model.eval()
+    with torch.no_grad():
+        yh_train = model(x_past_train.float().to(device), x_fut_train.float().to(device), adj_train[0].to(device)).detach().numpy()
+        yh_val = model(x_past_val.float().to(device), x_fut_val.float().to(device), adj_val[0].to(device)).detach().numpy()
 
     n_nodes = min(y_val.shape[1], n_nodes)
     fig, ax = plt.subplots(nrows = n_nodes, 

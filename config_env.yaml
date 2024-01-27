@@ -1,13 +1,13 @@
 setting:
     dataset: 'covid'
     name_model: ''
-    train: True
+    train: False
     past_step : 30
     future_step : 50
     lr : 1e-4
     weight_decay : 3e-4
     epochs : 1
-    plot: False
+    plot: True
 
 loss_function:
     alpha : 2

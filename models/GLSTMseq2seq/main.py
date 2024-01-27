@@ -65,7 +65,7 @@ def get_model(df_train : dataset,
                 val_loader = dl_val, 
                 epochs = config['training']['epochs'])
     #################################################
-    if config['setting']['plot']:
+    if bool(config['setting']['plot']):
         plot(model = trainer.model,
             config = config,
             loss_training = trainer.loss_train, 

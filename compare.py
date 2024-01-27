@@ -77,6 +77,8 @@ def get_metric(config_env: yaml,
                 past = config['setting']['past_step'],
                 future = config['setting']['future_step'],
                 dropout = config['model']['dropout'],
+                num_layer_gnn_past = config['model']['num_layer_gnn_past'],
+                num_layer_gnn_future = config['model']['num_layer_gnn_future'],
                 categorical_past = config['categorical'][config['setting']['dataset']]['past'],
                 categorical_future = config['categorical'][config['setting']['dataset']]['future'],
                 device = device).to(device)

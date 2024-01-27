@@ -38,28 +38,25 @@ class pre_processing(torch.nn.Module):
         return self.linear(x.float())
     
 class my_gcn(torch.nn.Module):
+
     def __init__(self, 
                  in_channels: int, 
-                 out_channels: int,
-                 dim_hidden_emb:int = 128):
+                 out_channels: int):
         super(my_gcn, self).__init__()
 
         self.in_channels = in_channels
         self.out_channels = out_channels
 
-        self.emb = nn.Linear(in_features = in_channels, 
-                             out_features = dim_hidden_emb, 
+        self.lin = nn.Linear(in_features = in_channels, 
+                             out_features = out_channels, 
                              bias = False)
         
 
     def forward(self,
                 x0: tuple) -> torch.tensor:
-        
         x, A = x0   
-        x_emb = self.emb(x)        
-
-        # Apply the mask to fill values in the input tensor
-        # sigmoid(Pi*X*W)
+        x_emb = self.lin(x)        
+        
         D_tilde = torch.diag((torch.sum(A,-1)+1)**(-0.5))
         L_tilde = torch.eye(D_tilde.shape[0]).to(x.device.type)-torch.matmul(torch.matmul(D_tilde, A), D_tilde)
         H = torch.einsum('ik, bskj -> bsij',L_tilde.float(), x_emb)

@@ -10,7 +10,7 @@ class Trainer():
                  PATH:str,
                  loss_function: callable, 
                  optimizer, 
-                 gamma_scheduler: float = 1.0,
+                 gamma_scheduler: float = 0.9,
                  step: int = 300, 
                  reset_loss:bool = True):
         """
