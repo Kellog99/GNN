@@ -1,11 +1,9 @@
 model:
-    categorical: [21, 112]
-    num_layer_gnn : 2
+    num_layer_gnn_past : 2
+    num_layer_gnn_future : 1
     out_preprocess : 256
     dropout : 0.15
     hidden_propagation : 128
-    concat : True
-    embedding : True
     dim_categorical : 128
     
 training:

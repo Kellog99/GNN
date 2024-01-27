@@ -1,7 +1,7 @@
 setting:
     dataset: 'covid'
     name_model: ''
-    train: False
+    train: True
     past_step : 30
     future_step : 50
     lr : 1e-4

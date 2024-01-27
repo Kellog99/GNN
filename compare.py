@@ -7,27 +7,35 @@ import importlib.util as imp
 from torch.utils.data import DataLoader
 from data import dataset
 from tqdm import tqdm
+import torch.nn.functional as F
 
 def step(model, 
-         dataloader: DataLoader, 
-         loss_function: callable)-> float:
+         dataloader: DataLoader)-> pd.DataFrame:
     
     # put model in evaluation mode
     model.eval()
-    loss_step = 0
+    yh = []
+    real = []
     with torch.no_grad():
         for x_past, x_fut, y, adj in tqdm(iter(dataloader)):
-            yh = model(x_past.to(model.device).float(), x_fut.to(model.device).float(), adj[0].to(model.device).float())
-            loss = loss_function(yh, y.to(model.device).float())
-            loss_step += loss.item()
-    loss_step = loss_step/len(dataloader)
-    return loss_step
+            yh.append(model(x_past.to(model.device).float(), x_fut.to(model.device).float(), adj[0].to(model.device).float()).cpu().detach())
+            real.append(y)
+    yh = torch.cat(yh)
+    real = torch.cat(real)
+    err = yh-real
+    loss = {
+        'l1': [F.l1_loss(yh, real).item()],
+        'MSE': [F.mse_loss(yh, real).item()], 
+        'Infty': [torch.max(torch.abs(err)).item()], 
+        'max_std':[torch.max(torch.std(err, 0)).item()],
+        'expected_std':[torch.mean(torch.std(err, 0)).item()]
+    }
+    return pd.DataFrame.from_dict(loss)
 
 
 def get_metric(config_env: yaml, 
                PATH:str, 
-               ds: dataset, 
-               loss_function: callable):
+               ds: dataset):
     '''
     config_env (yaml): is the global configuration file
     PATH (str): is the path to the saved model
@@ -75,19 +83,17 @@ def get_metric(config_env: yaml,
     
     model.load_state_dict(torch.load(PATH))
     tmp = step(model = model, 
-                dataloader = dl_test,
-                loss_function = loss_function)
+                dataloader = dl_test)
     return tmp
 
 
 def compare(config_env:yaml, 
-            ds: dataset, 
-            loss_function:callable = nn.L1Loss(reduction="mean")):
+            ds: dataset):
     
     past_step = config_env['setting']['past_step']
     future_step = config_env['setting']['future_step']
     
-    loss = {}
+    loss = []
     for name in os.listdir(config_env['paths']['list_models']):
         tmp = f"{name}_{past_step}_{future_step}.pt"
         config_env['setting']['name_model']= name
@@ -95,12 +101,11 @@ def compare(config_env:yaml,
         if os.path.exists(PATH):
             tmp = get_metric(config_env=config_env, 
                              PATH=PATH, 
-                             ds=ds, 
-                             loss_function=loss_function)
-            loss[name] = tmp
+                             ds=ds)
+            tmp['name']=name
+            loss.append(tmp)
             torch.cuda.empty_cache()
-
-    loss = pd.DataFrame(loss.items(), columns = ['model', 'score']).sort_values(by = 'score').reset_index(drop = True)
+    loss = pd.concat(loss)
     loss['past_step']= past_step
     loss['future_step']= future_step
     loss.to_csv("./compare.csv")
