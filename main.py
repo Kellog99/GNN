@@ -58,10 +58,14 @@ if __name__ == "__main__":
     ############### DATALOADER #########################
     df_train, df_val, df_test = get_dataloader(config = config)
     ####################################################
+
+    list_models = list(os.listdir(config['paths']['list_models']))
+    list_models.sort()
     if bool(config['setting']['train']):
         print("models to be tested:")
-        print('\n'.join([ f"* {x}" for x in os.listdir(config['paths']['list_models'])]))
-        for model in os.listdir(config['paths']['list_models']):
+        print('\n'.join([ f"* {x}" for x in list_models]))
+        
+        for model in list_models:
             txt = f" {model} ".center(40, "#")
             print(txt) 
 

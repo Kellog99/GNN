@@ -207,14 +207,5 @@ z = z_1.repeat(1,n)+(z_2.repeat(1,n))^T
 This produce the same exponent of the GAT's attention mechanism which is then normalized with a `softmax` operation.
 
 ##  5. <a name='TO-DO'></a> TO-DO
-1. The global configuration file should contains all the paths to the local configuration file 
-   1. Should it be a whole folder by itself that contains all the files ore one in each directory?
-2. `PytorchLightning`
-3. Create one whole global training procedure 
-   1. How to inser the scheduler into the training procedure.
-4. `DataManipulation.py` : it contains the class for organizing the dataset:
-    * The input should be the dataset, `past_step`, `future_step`.
-    * The last columns are for categorical variables
-    * The input of the dataset for the categorical variables is a list that contain the corresponding range of the variables in the dataset.
-5. Creare una classe Trainer in modo tale che posso richiamarla per fare evaluation con metriche diverse
-6. la funzione plot in `plot.py` deve mostrare l'ndamento ordinato nel tempo non la semplice rappresentazione con la distanza
+1. `PytorchLightning`
+2. 

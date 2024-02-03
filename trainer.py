@@ -1,3 +1,4 @@
+import sys
 import torch
 import numpy as np
 from tqdm import tqdm
@@ -62,6 +63,7 @@ class Trainer():
                     be = self.loss_val[-1]
                     bm = self.model
                 if (epoch+1)%1 == 0:
+                    sys.stdout.flush()
                     print(f"loss train epoch {epoch+1} == {self.loss_train[-1]}")
                     print(f"loss val epoch {epoch+1} == {self.loss_val[-1]}")
             torch.save(bm.state_dict(), self.PATH)
