@@ -59,7 +59,7 @@ def ranking_list(config):
         print("models to be tested:")
         print('\n'.join([ f"* {x}" for x in list_models]))
         
-        for model in list_models:
+        for model in ["GCN_LSTMseq2seq"]:
             txt = f" {model} ".center(40, "#")
             print(txt) 
 
@@ -87,7 +87,7 @@ def ranking_list(config):
 #################### MAIN FUNCTION #####################
 if __name__ == "__main__":
     ############### LOAD CONFIG ######################
-    with open("./config.yaml", 'r') as f:
+    with open("./config_env.yaml", 'r') as f:
         config = yaml.safe_load(f)
     
     ranking_list(config=config)

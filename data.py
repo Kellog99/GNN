@@ -6,30 +6,30 @@ from torch.utils.data import Dataset
 class dataset(Dataset):
     
     def __init__(self, 
-                 df:pd,
-                 adj: np.array,
-                 nodes: int, 
+                 df: pd.DataFrame,
                  past_step:int, 
                  future_step:int, 
-                 timedelta:str,
-                 categorical_variables: list, 
+                 future_variables: list, 
+                 y:list,
+                 adj: np.array,
+                 nodes: int, 
+                 timedelta:str = 'D',
                  col_data: str = "data"):
         """
         Arguments:
-            past_step: number of step to look in the past.
-            future_step: number of step to look in the future.
-            past_variable: a list of all the variables that need to be taken from the dataset corresponding to the past
-            future_variable: a list of all the variables that need to be taken from the dataset corresponding to the past
-            y: list of numerical variables that need to be predicted
-            adj: the adjacency matrix of the graph.
-            nodes: number of nodes of the graph
+            df (pandas.Dataframe): Path to the csv file with annotations.
+            adj : adjacency matrix
+            nodes : number of nodes
+            past_step (int): previous step to look back
+            future_step (int): future step to look for
+            col_data (str): it indicate the columns that gives the indication about the time
         """
 
         self.x = []
         self.x_fut = []
         self.y = []
         self.adj = adj
-        date = df[col_data].unique()
+        date = df[col_data].unique().tolist()
         date.sort()
         start = 0
         dt = np.diff(date[:past_step+future_step]) == np.timedelta64(1, timedelta)
@@ -42,9 +42,9 @@ class dataset(Dataset):
                 tmp_x = df[df[col_data].isin(date[i:i+past_step])].drop(columns = col_data).values
                 tmp_y = df[df[col_data].isin(date[i+past_step:i+past_step+future_step])]
                 
-                self.x_fut.append(tmp_y[categorical_variables].values.reshape(future_step, nodes, -1))
+                self.x_fut.append(tmp_y[future_variables].values.reshape(future_step, nodes, -1))
                 self.x.append(tmp_x.reshape(past_step, nodes, -1))
-                self.y.append(tmp_y.y.values.reshape(future_step, -1))
+                self.y.append(tmp_y[y].values.reshape(future_step, -1).transpose())
             else:
                 i += past_step+future_step
         
