@@ -1,9 +1,9 @@
 setting:
     dataset: 'covid'
     name_model: ''
-    train: False
-    past_step : 30
-    future_step : 50
+    train: true
+    past_step : 20
+    future_step : 10
     lr : 1e-4
     weight_decay : 3e-4
     epochs : 1

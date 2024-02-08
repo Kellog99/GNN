@@ -38,15 +38,9 @@ def linfty(y, yh,
     out += delta*(torch.sum(F.relu(-yh)))
     return out
 
-#################### MAIN FUNCTION #####################
-if __name__ == "__main__":
-    ############### LOAD CONFIG ######################
-    with open("./config_env.yaml", 'r') as f:
-        config = yaml.safe_load(f)
-    txt = f" testing on {config['setting']['dataset']} "
-    x = txt.center(80, "#")
-    print(x) 
 
+#################### TRAINING THE MODELS #####################
+def ranking_list(config):
     ############### LOSS FUNCTION ######################
     loss_function = partial(linfty, 
                             alpha = float(config['loss_function']['alpha']),
@@ -59,7 +53,7 @@ if __name__ == "__main__":
     df_train, df_val, df_test = get_dataloader(config = config)
     ####################################################
 
-    list_models = list(os.listdir(config['paths']['list_models']))
+    list_models = [x for x in list(os.listdir(config['paths']['list_models'])) if "seq2seq" in x]
     list_models.sort()
     if bool(config['setting']['train']):
         print("models to be tested:")
@@ -79,14 +73,25 @@ if __name__ == "__main__":
             # Import the module
             module = imp.module_from_spec(spec)
             spec.loader.exec_module(module)
-            be = module.get_model(df_train = df_train, 
+            _ = module.get_model(df_train = df_train, 
                                 df_val = df_val, 
                                 config_env = config,
                                 loss_function = loss_function)
             torch.cuda.empty_cache()  
-
     txt = f" comparing the results "
     x = txt.center(80, "#")
     print(x) 
     compare(config_env = config, 
             ds = df_test)
+       
+#################### MAIN FUNCTION #####################
+if __name__ == "__main__":
+    ############### LOAD CONFIG ######################
+    with open("./config.yaml", 'r') as f:
+        config = yaml.safe_load(f)
+    
+    ranking_list(config=config)
+
+    
+
+    
