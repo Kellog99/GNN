@@ -1,26 +1,26 @@
 setting:
     dataset: 'covid'
     name_model: ''
-    train: true
+    train: True
     past_step : 30
-    future_step : 50
+    future_step : 10
     lr : 1e-4
-    weight_decay : 3e-4
-    epochs : 1
+    weight_decay : 4e-3
+    epochs : 2500
     plot: True
 
 loss_function:
-    alpha : 2
-    beta: 1.2
-    gamma: 3e-4
-    delta: 4
+    alpha : 20
+    beta: 1.5
+    gamma: 1e-2
+    delta: 6
 
 dataset:
     train_split : 0.7
     val_split : 0.1
     in_feat_past : 10
     in_feat_future : 7
-
+    
 categorical:
     covid: 
        past: [21, 112, 4, 12, 31, 7, 2]
@@ -29,9 +29,9 @@ categorical:
     telephone: [43, 1, 1, 30, 3, 24]
 
 paths:
-    data: '/home/andrea/Scrivania/Tesi/leonardo/data/dataset'
-    adj: '/home/andrea/Scrivania/Tesi/leonardo/data/adj'
-    models: '/home/andrea/Scrivania/Tesi/leonardo/best_models'
-    config: '/home/andrea/Scrivania/Tesi/leonardo/config'
-    list_models : '/home/andrea/Scrivania/Tesi/leonardo/models'
-    fig: '/home/andrea/Scrivania/Tesi/leonardo/figures'
+    data: '/home/x2030admin/andrea/diffusion/data/dataset'
+    adj: '/home/x2030admin/andrea/diffusion/data/adj'
+    models: '/home/x2030admin/andrea/diffusion/best_models'
+    fig: '/home/x2030admin/andrea/diffusion/figures'
+    config: '/home/x2030admin/andrea/diffusion/config'
+    list_models : '/home/x2030admin/andrea/diffusion/models'

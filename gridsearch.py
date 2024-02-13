@@ -12,8 +12,7 @@ def create_dataset(past_step: int, future_step: int, config: yaml):
     data = pd.read_csv(os.path.join(config['paths']['data'], 'covid.csv'), index_col=0)
     data.data = pd.to_datetime(data.data, format="%Y-%m-%d")
     data.rename(columns = {'nuovi_casi':'y'}, inplace=True)
-    import pdb
-    pdb.set_trace()
+
     PATH = os.path.join(config['paths']['data'], config['setting']['dataset'], f"{past_step}_{future_step}.pkl")
     ds = dataset(df = data, 
             past_step = past_step,
@@ -38,8 +37,8 @@ if __name__ == "__main__":
                                future_step = future_step, 
                                config = config)
 
-    for past_step in steps:
-        for future_step in steps:
+    for past_step in steps[2:]:
+        for future_step in steps[:-3]:
             txt = f" {config['setting']['dataset']} on {past_step}, {future_step} "
             x = txt.center(80, "#")
             print(x) 

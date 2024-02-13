@@ -2,10 +2,10 @@ model:
     num_layer_gnn_past : 2
     num_layer_gnn_future : 1
     out_preprocess : 256
-    dropout : 0.15
+    dropout : 0.10
     hidden_propagation : 128
     dim_categorical : 128
     
 training:
     epochs: 300
-    batch_size: 12
+    batch_size: 64

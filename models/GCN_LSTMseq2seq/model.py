@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 class embedding_layer(torch.nn.Module):
     def __init__(self,
                  categorical:list,
@@ -106,7 +105,6 @@ class GCN_LSTMseq2seq(torch.nn.Module):
                  dropout: float = 0.1, 
                  dim_categorical_past:int = 64, 
                  dim_categorical_future:int = 128, 
-                 concat:bool = True,
                  num_layer_gnn_past:int = 1,
                  num_layer_gnn_future:int = 1,
                  out_gnn: int = 128, 
@@ -135,6 +133,7 @@ class GCN_LSTMseq2seq(torch.nn.Module):
                                                     dim_categorical = dim_categorical_future)
         
         in_feat_preprocessing_past = in_feat_past + dim_categorical_past - len(categorical_past)
+
         self.pre_processing_past = pre_processing(in_feat = in_feat_preprocessing_past, 
                                                  out_feat = out_preprocess, 
                                                  dropout = dropout)

@@ -8,4 +8,4 @@ model:
     
 training:
     epochs: 300
-    batch_size: 24
+    batch_size: 120

@@ -34,7 +34,6 @@ def plot(model,
     model = model.cpu()
     device = torch.device('cpu')
     torch.cuda.empty_cache()
-    
     x_past_train, x_fut_train, y_train, adj_train = next(iter(dl_train))
     x_past_val, x_fut_val, y_val, adj_val = next(iter(dl_val))
     model.eval()

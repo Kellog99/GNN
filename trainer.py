@@ -62,7 +62,7 @@ class Trainer():
                 if (self.loss_val[-1]<be) & (epoch/epochs>0.15):
                     be = self.loss_val[-1]
                     bm = self.model
-                if (epoch+1)%1 == 0:
+                if (epoch+1)%1000 == 0:
                     sys.stdout.flush()
                     print(f"loss train epoch {epoch+1} == {self.loss_train[-1]}")
                     print(f"loss val epoch {epoch+1} == {self.loss_val[-1]}")
