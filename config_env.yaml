@@ -3,7 +3,7 @@ setting:
     name_model: ''
     train: True
     past_step : 30
-    future_step : 10
+    future_step : 50
     lr : 1e-4
     weight_decay : 4e-3
     epochs : 2500
@@ -29,9 +29,9 @@ categorical:
     telephone: [43, 1, 1, 30, 3, 24]
 
 paths:
-    data: '/home/x2030admin/andrea/diffusion/data/dataset'
-    adj: '/home/x2030admin/andrea/diffusion/data/adj'
-    models: '/home/x2030admin/andrea/diffusion/best_models'
-    fig: '/home/x2030admin/andrea/diffusion/figures'
-    config: '/home/x2030admin/andrea/diffusion/config'
-    list_models : '/home/x2030admin/andrea/diffusion/models'
+    data: '/home/andrea/Scrivania/Tesi/leonardo/data/dataset'
+    adj: '/home/andrea/Scrivania/Tesi/leonardo/data/adj'
+    models: '/home/andrea/Scrivania/Tesi/leonardo/best_models'
+    fig: '/home/andrea/Scrivania/Tesi/leonardo/figures'
+    config: '/home/andrea/Scrivania/Tesi/leonardo/config'
+    list_models : '/home/andrea/Scrivania/Tesi/leonardo/models'

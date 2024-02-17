@@ -3,18 +3,37 @@ import pickle
 import os
 from data import dataset
 import torch
+import pandas as pd
 import torch.nn.functional as F
 import importlib.util as imp
 from functools import partial
 from compare import compare
 
 #################### LOADING THE DATASET #####################
-def get_dataloader(config:yaml)-> (dataset, dataset, dataset):
+def get_dataloader(config:yaml)-> tuple[dataset, dataset, dataset]:
     past_step = config['setting']['past_step']
     future_step = config['setting']['future_step']
 
-    with open( os.path.join(config['paths']['data'], config['setting']['dataset'],f"{past_step}_{future_step}.pkl"), 'rb') as f:
-        dataset = pickle.load(f) 
+    PATH = os.path.join(config['paths']['data'], config['setting']['dataset'],f"{past_step}_{future_step}.pkl")
+    if os.path.exists(PATH):
+        with open( PATH, 'rb') as f:
+            dataset = pickle.load(f) 
+    else:
+        with open(os.path.join(config['paths']['adj'],"adj_totale.pkl"), "rb") as f:
+            adj = pickle.load(f)
+        data = pd.read_csv(os.path.join(config['paths']['data'], 'covid.csv'), index_col=0)
+        data.data = pd.to_datetime(data.data, format="%Y-%m-%d")
+        data.rename(columns = {'nuovi_casi':'y'}, inplace=True)
+
+        PATH = os.path.join(config['paths']['data'], config['setting']['dataset'], f"{past_step}_{future_step}.pkl")
+        dataset = dataset(df = data, 
+                            past_step = past_step,
+                            future_step = future_step, 
+                            nodes = len(data.codice_provincia.unique()),
+                            future_variables = data.columns[-7:].tolist(), 
+                            y = ['y'],
+                            adj = adj, 
+                            timedelta = 'D')
     
     config['dataset']['in_feat_past'] =  dataset.x[0].shape[-1]
     config['dataset']['in_feat_future'] =  dataset.x_fut[0].shape[-1]
@@ -37,6 +56,25 @@ def linfty(y, yh,
     out += gamma*torch.max(torch.abs(y-yh))
     out += delta*(torch.sum(F.relu(-yh)))
     return out
+
+
+def call_model(config:yaml, 
+               df_train: dataset,
+               df_val: dataset, 
+               loss_function: callable):
+    # mi inserisco all'interno del folder di ciascun modello
+    ################## IMPORTING THE FUNCTION ####################
+    file_path = os.path.join(config['paths']['list_models'], config['setting']['name_model'], 'main.py')
+    # Create a module spec
+    spec = imp.spec_from_file_location('main.py', file_path)
+    # Import the module
+    module = imp.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    _ = module.get_model(df_train = df_train, 
+                        df_val = df_val, 
+                        config_env = config,
+                        loss_function = loss_function)
+    torch.cuda.empty_cache()  
 
 
 #################### TRAINING THE MODELS #####################
@@ -64,20 +102,11 @@ def ranking_list(config):
             print(txt) 
 
             config['setting']['name_model'] = model
-
-            # mi inserisco all'interno del folder di ciascun modello
-            ################## IMPORTING THE FUNCTION ####################
-            file_path = os.path.join(config['paths']['list_models'], model, 'main.py')
-            # Create a module spec
-            spec = imp.spec_from_file_location('main.py', file_path)
-            # Import the module
-            module = imp.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            _ = module.get_model(df_train = df_train, 
-                                df_val = df_val, 
-                                config_env = config,
-                                loss_function = loss_function)
-            torch.cuda.empty_cache()  
+            call_model(config = config, 
+                       df_train=df_train,
+                       df_val=df_val, 
+                       loss_function=loss_function)
+    
     txt = f" comparing the results "
     x = txt.center(80, "#")
     print(x) 
