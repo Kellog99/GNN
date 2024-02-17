@@ -50,7 +50,6 @@ def get_metric(config_env: yaml,
     config_env (yaml): is the global configuration file
     PATH (str): is the path to the saved model
     ds (dataset): test dataset on which all the models are tested
-    loss_function: global loss function on which testing the models
     '''
     name = config_env['setting']['name_model']
 
@@ -104,18 +103,36 @@ def get_metric(config_env: yaml,
     tmp['data'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     return tmp
 
-
-def compare(config_env:yaml, 
-            ds: dataset):
-    
-    past_step = config_env['setting']['past_step']
-    future_step = config_env['setting']['future_step']
+def check_update(result:pd.DataFrame):
     exists = os.path.exists("./compare.csv")
     if exists:
         out = pd.read_csv("./compare.csv", index_col = 0)
     else:
         out = pd.DataFrame()
-    loss = []
+
+    tmp = out[out[idx].isin(result[idx].to_dict(orient = 'list')).all(axis =1)]
+    if len(tmp)==0:
+        out = pd.concat([out, result])
+    else:
+        if tmp.l1.values[0]>result.l1.values[0]:
+            out = out.drop(tmp.index.values[0])
+            out = pd.concat([out, result])
+    
+    out = out.sort_values (by = 'l1')
+    out.reset_index(drop=True, inplace=True)
+    out.to_csv("./compare.csv")
+    print(out)
+
+
+def compare(config_env:yaml, 
+            ds: dataset):
+    """
+    Given the list of all the possible models, it test every model on the ds dataset
+    """
+    
+    past_step = config_env['setting']['past_step']
+    future_step = config_env['setting']['future_step']
+    
     for name in os.listdir(config_env['paths']['list_models']):
         print(name)
         tmp = f"{name}_{past_step}_{future_step}.pt"
@@ -126,32 +143,6 @@ def compare(config_env:yaml,
                              PATH=PATH, 
                              ds=ds)
             tmp['name']=name
-            append = True
-
-            if exists:
-                row = out[idx].isin(tmp[idx].to_dict(orient = 'list')).all(axis =1)
-                err = out[row]
-                if len(err)>0:
-                    if err.l1.values[0]>=tmp.l1.values[0]:
-                        print("something better")
-                        # poiché c'è stato un miglioramento rispetto alla norma desiderata
-                        # si sostituisce tale valore all'interno del dataframe
-                        out.iloc[out[row].index[out[row].index[0]]] = tmp.loc[0]
-                    append = False
-            if append:
-                # La nuova riga del dataframe va appesa in due casi:
-                # 1) il file csv non esiste
-                # 2) quel modello non è mai stato valutato
-                loss.append(tmp)
-                print("append")
             torch.cuda.empty_cache()
-    if exists:
-        if len(loss)>0:
-            loss = pd.concat(loss)
-            out = pd.concat([out, loss])
-    else:
-        out = pd.concat(loss) 
-    out = out.sort_values (by = 'l1')
-    out.reset_index(drop=True, inplace=True)
-    out.to_csv("./compare.csv")
-    print(out)
+
+            check_update(tmp)

@@ -65,13 +65,13 @@ def get_model(df_train : dataset,
     
     torch.save(model.state_dict(), os.path.join(config['paths']['models'], f"{id_test}.pt"))
     #################################################
-
-    plot(model = trainer.model,
-        config = config,
-        loss_training = trainer.loss_train, 
-        loss_validation = trainer.loss_val, 
-        dl_train = dl_train, 
-        dl_val = dl_val, 
-        name = f"{id_test}")
+    if bool(config['setting']['plot']):
+        plot(model = trainer.model,
+            config = config,
+            loss_training = trainer.loss_train, 
+            loss_validation = trainer.loss_val, 
+            dl_train = dl_train, 
+            dl_val = dl_val, 
+            name = f"{id_test}")
 
     return min(trainer.loss_val)

@@ -59,7 +59,7 @@ class Trainer():
                 if (epoch+1)%self.step_scheduler ==0:
                     self.scheduler.step()
                     
-                if (self.loss_val[-1]<be) & (epoch/epochs>0.15):
+                if self.loss_val[-1]<be:
                     be = self.loss_val[-1]
                     bm = self.model
                 if (epoch+1)%1000 == 0:

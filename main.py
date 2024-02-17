@@ -7,7 +7,7 @@ import pandas as pd
 import torch.nn.functional as F
 import importlib.util as imp
 from functools import partial
-from compare import compare
+from compare import check_update, get_metric
 
 #################### LOADING THE DATASET #####################
 def get_dataloader(config:yaml)-> tuple[dataset, dataset, dataset]:
@@ -61,7 +61,16 @@ def linfty(y, yh,
 def call_model(config:yaml, 
                df_train: dataset,
                df_val: dataset, 
-               loss_function: callable):
+               df_test: dataset):
+    
+    ############### LOSS FUNCTION ######################
+    loss_function = partial(linfty, 
+                            alpha = float(config['loss_function']['alpha']),
+                            beta = float(config['loss_function']['beta']),
+                            gamma = float(config['loss_function']['gamma']),
+                            delta = float(config['loss_function']['delta']))
+    ####################################################
+
     # mi inserisco all'interno del folder di ciascun modello
     ################## IMPORTING THE FUNCTION ####################
     file_path = os.path.join(config['paths']['list_models'], config['setting']['name_model'], 'main.py')
@@ -75,29 +84,30 @@ def call_model(config:yaml,
                         config_env = config,
                         loss_function = loss_function)
     torch.cuda.empty_cache()  
+    
+    ############# TESTING ################
+    PATH = os.path.join(config['paths']['models'], f"{config['setting']['name_model']}_{config['setting']['past_step']}_{config['setting']['future_step']}.pt")
 
+    tmp = get_metric(config_env=config, 
+                    PATH=PATH,
+                    ds=df_test)
+    tmp['name']=config['setting']['name_model']
+    check_update(tmp)
 
 #################### TRAINING THE MODELS #####################
 def ranking_list(config):
-    ############### LOSS FUNCTION ######################
-    loss_function = partial(linfty, 
-                            alpha = float(config['loss_function']['alpha']),
-                            beta = float(config['loss_function']['beta']),
-                            gamma = float(config['loss_function']['gamma']),
-                            delta = float(config['loss_function']['delta']))
-    ####################################################
-    
     ############### DATALOADER #########################
     df_train, df_val, df_test = get_dataloader(config = config)
     ####################################################
 
-    list_models = [x for x in list(os.listdir(config['paths']['list_models'])) if "seq2seq" in x]
+    #list_models = [x for x in list(os.listdir(config['paths']['list_models'])) if "seq2seq" in x]
+    list_models = ["GCN_LSTMseq2seq"]
     list_models.sort()
     if bool(config['setting']['train']):
         print("models to be tested:")
         print('\n'.join([ f"* {x}" for x in list_models]))
         
-        for model in ["GCN_LSTMseq2seq"]:
+        for model in list_models:
             txt = f" {model} ".center(40, "#")
             print(txt) 
 
@@ -105,13 +115,7 @@ def ranking_list(config):
             call_model(config = config, 
                        df_train=df_train,
                        df_val=df_val, 
-                       loss_function=loss_function)
-    
-    txt = f" comparing the results "
-    x = txt.center(80, "#")
-    print(x) 
-    compare(config_env = config, 
-            ds = df_test)
+                       df_test = df_test)
        
 #################### MAIN FUNCTION #####################
 if __name__ == "__main__":
