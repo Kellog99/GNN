@@ -121,7 +121,7 @@ def check_update(result:pd.DataFrame):
     out = out.sort_values (by = 'l1')
     out.reset_index(drop=True, inplace=True)
     out.to_csv("./compare.csv")
-    print(out)
+    print(len(out))
 
 
 def compare(config_env:yaml, 

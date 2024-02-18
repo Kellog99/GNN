@@ -101,7 +101,7 @@ def ranking_list(config):
     ####################################################
 
     #list_models = [x for x in list(os.listdir(config['paths']['list_models'])) if "seq2seq" in x]
-    list_models = ["GCN_LSTMseq2seq"]
+    list_models = ["GAT_LSTMseq2seq"]
     list_models.sort()
     if bool(config['setting']['train']):
         print("models to be tested:")
